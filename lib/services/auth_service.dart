@@ -1,51 +1,89 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
 class AuthService {
-  final String apiUrl = 'http://192.168.1.101/api/';
+  // Inicializar el logger
+  final logger = Logger();
 
-  // Registro
-  Future<void> registerUser(String id_usuario, String nombre_usuario,
-      String email, String contrasena, String fec_nac, String programa) async {
-    final response = await http.post(
-      Uri.parse('${apiUrl}register.php'),
-      body: {
-        'id_usuario': id_usuario,
-        'nombre_usuario': nombre_usuario,
-        'email': email,
-        'contrasena': contrasena, // Coincide con el PHP
-        'fec_nac': fec_nac,
-        'programa': programa,
-      },
-    );
+  // URL base de la API
+  final String baseUrl = "http://127.0.0.1/api/";
 
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      if (data['success']) {
-        print('Registro exitoso');
+  // Método para registrar un usuario
+  Future<void> registerUser(String email, String nombreUsuario,
+      String contrasena, String fecNac, String programa) async {
+    final String registerUrl =
+        "$baseUrl/register.php"; // Ruta completa para el registro
+
+    try {
+      final response = await http.post(
+        Uri.parse(registerUrl),
+        body: {
+          'correo': email,
+          'nombre_usuario': nombreUsuario,
+          'contrasena': contrasena,
+          'fecha_nac': fecNac,
+          'programa': programa,
+        },
+      );
+
+      // Imprimir la respuesta completa del servidor
+      logger.i("Respuesta del servidor: ${response.body}");
+
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(response.body);
+          if (data['success']) {
+            logger.i("Usuario registrado con éxito: ${data['message']}");
+          } else {
+            logger.w("Error al registrar usuario: ${data['message']}");
+          }
+        } catch (e) {
+          logger.e("La respuesta no es un JSON válido: ${response.body}");
+        }
       } else {
-        print('Error: ${data['message']}');
+        logger
+            .e("Error de servidor: ${response.statusCode} - ${response.body}");
       }
+    } catch (e) {
+      logger.e("Error al registrar usuario", e);
     }
   }
 
-  // Inicio de sesión
-  Future<void> loginUser(String email, String contrasena) async {
-    final response = await http.post(
-      Uri.parse('${apiUrl}login.php'),
-      body: {
-        'email': email,
-        'contrasena': contrasena, // Coincide con el PHP
-      },
-    );
+  // Método para iniciar sesión
+  Future<void> loginUser(String correo, String contrasena) async {
+    final String loginUrl =
+        "$baseUrl/login.php"; // Ruta completa para el inicio de sesión
 
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      if (data['success']) {
-        print('Inicio de sesión exitoso');
+    try {
+      final response = await http.post(
+        Uri.parse(loginUrl),
+        body: {
+          'correo': correo,
+          'contrasena': contrasena,
+        },
+      );
+
+      // Imprimir la respuesta completa del servidor
+      logger.i("Respuesta del servidor: ${response.body}");
+
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(response.body);
+          if (data['success']) {
+            logger.i("Inicio de sesión exitoso: ${data['message']}");
+          } else {
+            logger.w("Error de inicio de sesión: ${data['message']}");
+          }
+        } catch (e) {
+          logger.e("La respuesta no es un JSON válido: ${response.body}");
+        }
       } else {
-        print('Error: ${data['message']}');
+        logger
+            .e("Error de servidor: ${response.statusCode} - ${response.body}");
       }
+    } catch (e) {
+      logger.e("Error al iniciar sesión: $e");
     }
   }
 }
