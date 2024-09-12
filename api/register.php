@@ -7,7 +7,6 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 // Conexión a la base de datos
 $conn = new mysqli('localhost', 'root', '', 'ubook');
 
-
 // Verificar si la conexión fue exitosa
 if ($conn->connect_error) {
     die(json_encode(['success' => false, 'message' => "Error de conexión: " . $conn->connect_error]));
@@ -22,7 +21,7 @@ $fecha_nac = isset($_POST['fecha_nac']) ? $_POST['fecha_nac'] : '';
 $programa = isset($_POST['programa']) ? $_POST['programa'] : '';
 
 // Validación de campos vacíos
-if (empty($id_usuario)||empty($correo) || empty($nombre_usuario) || empty($contrasena) || empty($fecha_nac) || empty($programa)) {
+if (empty($id_usuario) || empty($correo) || empty($nombre_usuario) || empty($contrasena) || empty($fecha_nac) || empty($programa)) {
     die(json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios']));
 }
 
@@ -30,8 +29,8 @@ if (empty($id_usuario)||empty($correo) || empty($nombre_usuario) || empty($contr
 $contrasena_hash = password_hash($contrasena, PASSWORD_DEFAULT);
 
 // Preparar la consulta para insertar el nuevo usuario
-$stmt = $conn->prepare("INSERT INTO usuario (id_usuario, correo, nombre_usuario, contrasena, fecha_nac, programa) VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("isssss",$id_usuario, $correo, $nombre_usuario, $contrasena_hash, $fecha_nac, $programa);
+$stmt = $conn->prepare("INSERT INTO usuario (id_usuario, nombre_usuario, correo, contrasena, fecha_nac, programa) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("isssss", $id_usuario, $nombre_usuario, $correo, $contrasena_hash, $fecha_nac, $programa);
 
 // Ejecutar la consulta y verificar si fue exitosa
 if ($stmt->execute()) {
@@ -44,4 +43,5 @@ if ($stmt->execute()) {
 $stmt->close();
 $conn->close();
 ?>
+
 
