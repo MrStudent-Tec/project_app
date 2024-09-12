@@ -51,8 +51,8 @@ class AuthService {
     }
   }
 
-  // Método para iniciar sesión
-  Future<void> loginUser(String correo, String contrasena) async {
+// Método para iniciar sesión
+  Future<String> loginUser(String correo, String contrasena) async {
     final String loginUrl =
         "$baseUrl/login.php"; // Ruta completa para el inicio de sesión
 
@@ -73,18 +73,23 @@ class AuthService {
           final data = jsonDecode(response.body);
           if (data['success']) {
             logger.i("Inicio de sesión exitoso: ${data['message']}");
+            return 'success'; // Inicio de sesión exitoso
           } else {
             logger.w("Error de inicio de sesión: ${data['message']}");
+            return data['message']; // Mensaje específico del error
           }
         } catch (e) {
           logger.e("La respuesta no es un JSON válido: ${response.body}");
+          return 'Error procesando la respuesta del servidor';
         }
       } else {
         logger
             .e("Error de servidor: ${response.statusCode} - ${response.body}");
+        return 'Error de servidor: ${response.statusCode}';
       }
     } catch (e) {
       logger.e("Error al iniciar sesión: $e");
+      return 'Error de conexión al servidor';
     }
   }
 }
