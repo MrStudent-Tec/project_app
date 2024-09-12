@@ -7,11 +7,11 @@ class AuthService {
   final logger = Logger();
 
   // URL base de la API
-  final String baseUrl = "http://127.0.0.1/api/";
+  final String baseUrl = "http://127.0.0.1/api";
 
   // Método para registrar un usuario
-  Future<void> registerUser(String id_usuario, String email, String nombreUsuario,
-      String contrasena, String fecNac, String programa) async {
+  Future<void> registerUser(String idUsuario, String nombreUsuario,
+      String email, String contrasena, String fecNac, String programa) async {
     final String registerUrl =
         "$baseUrl/register.php"; // Ruta completa para el registro
 
@@ -19,15 +19,14 @@ class AuthService {
       final response = await http.post(
         Uri.parse(registerUrl),
         body: {
-          'id_usuario': id_usuario,
-          'correo': email,
+          'id_usuario': idUsuario,
           'nombre_usuario': nombreUsuario,
+          'correo': email,
           'contrasena': contrasena,
           'fecha_nac': fecNac,
           'programa': programa,
         },
       );
-
       // Imprimir la respuesta completa del servidor
       logger.i("Respuesta del servidor: ${response.body}");
 
@@ -50,6 +49,7 @@ class AuthService {
       logger.e("Error al registrar usuario", e);
     }
   }
+
 
 // Método para iniciar sesión
   Future<String> loginUser(String correo, String contrasena) async {
