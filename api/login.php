@@ -35,10 +35,10 @@ if ($result->num_rows > 0) {
     if (password_verify($contrasena, $row['contrasena'])) {
         echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Contraseña incorrecta']);
+        echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Correo no encontrado']);
+    echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
 }
 
 // Cerrar la declaración y la conexión
