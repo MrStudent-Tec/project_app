@@ -26,9 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/icon/ubook1.png',
+                'assets/logo.png',
                 height: 150,
-                width: 150,
               ),
               const SizedBox(height: 30),
 
@@ -62,15 +61,33 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
+                    // Validar que los campos no estén vacíos
+                    if (_emailController.text.isEmpty ||
+                        _passwordController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Por favor, ingresa todos los campos')),
+                      );
+                      return;
+                    }
+
                     // Llamar a la función de inicio de sesión
-                    await _authService.loginUser(
+                    String result = await _authService.loginUser(
                       _emailController.text,
                       _passwordController.text,
                     );
-                    // Navegar a la pantalla de publicaciones en caso de éxito
-                    Navigator.pushNamed(context, '/home');
+
+                    // Verificar si el inicio de sesión fue exitoso
+                    if (result == 'success') {
+                      Navigator.pushNamed(context, '/home');
+                    } else {
+                      // Mostrar mensaje de error específico
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result)),
+                      );
+                    }
                   },
-                  child: const Text('Iniciar sesión'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF004D40),
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -78,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
+                  child: const Text('Iniciar sesión'),
                 ),
               ),
 
