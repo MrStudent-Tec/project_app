@@ -28,7 +28,7 @@ if ($result->num_rows > 0) {
         echo json_encode(['success' => false, 'message' => 'Contraseña incorrecta']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
+    echo json_encode(['success' => false, 'message' => 'Correo no encontrado']);
 }
 
 // Cerrar conexión
