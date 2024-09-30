@@ -16,21 +16,21 @@ if ($conn->connect_error) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $facebook = $_POST['facebook'];
     $instagram = $_POST['instagram'];
-    $userId = $_POST['user_id']; // Identificador del usuario para actualizar el registro
+    $userId = $_POST['id_usuario']; // Identificador del usuario para actualizar el registro
 
     $profileImagePath = null;
     $coverImagePath = null;
 
     // Subir la imagen de perfil si existe
-    if (isset($_FILES['profileImage'])) {
-        $profileImage = $_FILES['profileImage'];
+    if (isset($_FILES['perfil'])) {
+        $profileImage = $_FILES['perfil'];
         $profileImagePath = 'uploads/perfil_' . time() . '_' . basename($profileImage['name']);
         move_uploaded_file($profileImage['tmp_name'], $profileImagePath);
     }
 
     // Subir la imagen de portada si existe
-    if (isset($_FILES['coverImage'])) {
-        $coverImage = $_FILES['coverImage'];
+    if (isset($_FILES['portada'])) {
+        $coverImage = $_FILES['portada'];
         $coverImagePath = 'uploads/portada_' . time() . '_' . basename($coverImage['name']);
         move_uploaded_file($coverImage['tmp_name'], $coverImagePath);
     }

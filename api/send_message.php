@@ -11,26 +11,23 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $userId = $_POST['user_id'];
+    $sender = $_POST['sender'];
+    $receiver = $_POST['receiver'];
     $message = $_POST['message'];
-    $chatId = $_POST['chat_id'];
+    $isseen = 0; // Por defecto, el mensaje no ha sido visto
+    $messageId = uniqid();
 
-    // Validar campos vacíos
-    if (empty($userId) || empty($message) || empty($chatId)) {
-        echo json_encode(['success' => false, 'message' => 'Campos faltantes']);
-        exit();
-    }
-
-    // Guardar el mensaje en la base de datos
-    //$sql = "INSERT INTO mensajes (user_id, chat_id, mensaje) VALUES ('$userId', '$chatId', '$message')";
-    $sql = "INSERT INTO `mensajeria`(`num_mensajeria`, `mensajeria_texto`, `mensajeria_galeria`, `fecha_mensajeria`) VALUES ('','','','')";
+    $sql = "INSERT INTO chats (sender, receiver, message, isseen, messageId) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssis", $sender, $receiver, $message, $isseen, $messageId);
     
-    if ($conn->query($sql) === TRUE) {
-        echo json_encode(['success' => true, 'message' => 'Mensaje enviado']);
+    if ($stmt->execute()) {
+        echo json_encode(array("status" => "success"));
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error al enviar el mensaje']);
+        echo json_encode(array("status" => "error"));
     }
-}
 
-$conn->close();
+    $stmt->close();
+    $conn->close();
+}
 ?>
