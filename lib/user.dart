@@ -46,9 +46,9 @@ class UsersScreen extends StatelessWidget {
             ),
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            ChatScreen(),
+            Chats(),
             GroupScreen(),
             ComunityScreen(),
             SettingsScreen(),

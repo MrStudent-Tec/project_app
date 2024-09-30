@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               radius: 50,
               backgroundImage: _profileImage != null
                   ? FileImage(_profileImage!)
-                  : AssetImage('assets/me.png') as ImageProvider,
+                  : AssetImage('assets/person_icon.png') as ImageProvider,
             ),
           ),
           const SizedBox(height: 10),

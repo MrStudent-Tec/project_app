@@ -1,45 +1,102 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-class ChatDetailScreen extends StatefulWidget {
-  final String userName;
-  final String userImage;
-  final bool isOnline;
+class MessageChatScreen extends StatefulWidget {
+  final String userIdVisit;
+  final String currentUserId;
 
-  const ChatDetailScreen({
-    Key? key,
-    required this.userName,
-    required this.userImage,
-    required this.isOnline,
-  }) : super(key: key);
+  MessageChatScreen({required this.userIdVisit, required this.currentUserId});
 
   @override
-  _ChatDetailScreenState createState() => _ChatDetailScreenState();
+  _MessageChatScreenState createState() => _MessageChatScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
-  final TextEditingController _messageController = TextEditingController();
-  final ImagePicker _picker = ImagePicker();
+class _MessageChatScreenState extends State<MessageChatScreen> {
+  TextEditingController _messageController = TextEditingController();
+  List<dynamic> _messages = [];
+  bool notify = false;
 
-  // Simulación de lista de mensajes
-  final List<String> _messages = [];
+  @override
+  void initState() {
+    super.initState();
+    _retrieveMessages();
+  }
 
-  // Función para enviar mensaje de texto
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      setState(() {
-        _messages.add(_messageController.text);
-        _messageController.clear();
-      });
+  // Enviar mensaje
+  Future<void> _sendMessage() async {
+    String message = _messageController.text;
+
+    if (message.isNotEmpty) {
+      var response = await http.post(
+        Uri.parse('http://127.0.0.1/api/send_message.php'),
+        body: {
+          'sender': widget.currentUserId,
+          'receiver': widget.userIdVisit,
+          'message': message,
+        },
+      );
+
+      var jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['status'] == 'success') {
+        setState(() {
+          _messageController.clear();
+          _retrieveMessages();
+        });
+      }
     }
   }
 
-  // Función para enviar una imagen desde la galería
-  Future<void> _sendImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      // Aquí puedes implementar la subida de imagen al servidor
-      print('Imagen seleccionada: ${image.path}');
+  // Recuperar mensajes
+  Future<void> _retrieveMessages() async {
+    var response = await http.get(
+      Uri.parse(
+          'http://127.0.0.1/api/retrieve_messages.php?senderId=${widget.currentUserId}&receiverId=${widget.userIdVisit}'),
+    );
+
+    var jsonResponse = jsonDecode(response.body);
+    setState(() {
+      _messages = jsonResponse;
+    });
+  }
+
+  // Subir imagen
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker()
+        .pickImage(source: ImageSource.gallery); // Corrección aquí
+    if (pickedFile != null) {
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('http://127.0.0.1/api/upload_image.php'));
+      request.files
+          .add(await http.MultipartFile.fromPath('image', pickedFile.path));
+
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        var jsonResponse = jsonDecode(responseData);
+        if (jsonResponse['status'] == 'success') {
+          String imageUrl = jsonResponse['url'];
+          _sendMessageWithImage(imageUrl);
+        }
+      }
+    }
+  }
+
+  Future<void> _sendMessageWithImage(String imageUrl) async {
+    var response = await http.post(
+      Uri.parse('http://127.0.0.1/api/send_message.php'),
+      body: {
+        'sender': widget.currentUserId,
+        'receiver': widget.userIdVisit,
+        'message': 'Sent you an image.',
+        'url': imageUrl,
+      },
+    );
+
+    var jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['status'] == 'success') {
+      _retrieveMessages();
     }
   }
 
@@ -47,31 +104,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage:
-                  AssetImage(widget.userImage), // Imagen del usuario
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.userName, // Nombre del usuario
-                  style: const TextStyle(color: Colors.white),
-                ),
-                Text(
-                  widget.isOnline
-                      ? 'En línea'
-                      : 'Desconectado', // Estado del usuario
-                  style: const TextStyle(fontSize: 12, color: Colors.white),
-                ),
-              ],
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF004D40),
+        title: Text('Chat'),
       ),
       body: Column(
         children: [
@@ -79,34 +112,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
+                var message = _messages[index];
                 return ListTile(
-                  title: Text(_messages[index]),
+                  title: Text(message['message']),
+                  subtitle: message['url'] != null
+                      ? Image.network('http://127.0.0.1/api/${message['url']}')
+                      : null,
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.photo),
-                  onPressed: _sendImage, // Seleccionar imagen desde la galería
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.image),
+                onPressed: _pickImage,
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _messageController,
+                  decoration: InputDecoration(hintText: 'Type a message'),
                 ),
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Escribe un mensaje...',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage, // Enviar mensaje de texto
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                icon: Icon(Icons.send),
+                onPressed: _sendMessage,
+              ),
+            ],
           ),
         ],
       ),
