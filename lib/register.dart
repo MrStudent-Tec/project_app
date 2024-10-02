@@ -9,7 +9,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _idController = TextEditingController();
+  // Controladores para los campos de texto
+  final TextEditingController _identyController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -42,6 +43,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _registerUser() async {
+    // Validar que los campos requeridos no sean nulos
+    if (_identyController.text.isNotEmpty &&
+        _usernameController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _selectedProgram != null) {
+      // Verificar si el correo ya está registrado
+      bool emailExists =
+          await _authService.checkEmailExists(_emailController.text);
+
+      if (emailExists) {
+        // Mostrar mensaje si el correo ya está registrado
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('El correo ya está registrado. Usa otro.')),
+        );
+        return; // Detener el registro
+      }
+
+      // Convertir la fecha a una cadena (por ejemplo, 'YYYY-MM-DD')
+      String formattedDate =
+          "${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}";
+
+      // Llamar a la función de registro con valores no nulos
+      await _authService.registerUser(
+        _identyController.text,
+        _usernameController.text,
+        _emailController.text,
+        _passwordController.text,
+        formattedDate, // Aquí pasas la fecha como cadena
+        _selectedProgram!, // Asegurar que no sea nulo con '!'
+      );
+
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registrado con éxito')),
+      );
+      Navigator.pushNamed(context, '/login');
+    } else {
+      // Mostrar un mensaje de error si faltan campos
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor completa todos los campos')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,8 +106,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Campo de identificación
                 TextField(
-                  controller: _idController,
+                  controller: _identyController,
                   decoration: InputDecoration(
                     labelText: 'Identificación',
                     border: OutlineInputBorder(
@@ -68,6 +118,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Campo de nombre de usuario
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -78,6 +130,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Campo de correo
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -89,6 +143,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Campo de contraseña
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
@@ -100,15 +156,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Selector de fecha de nacimiento
                 ListTile(
                   title: Text(
                     _selectedDate == null
                         ? 'Fecha de Nacimiento'
                         : 'Fecha de Nacimiento: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                   ),
-                  trailing: Icon(Icons.calendar_today),
+                  trailing: const Icon(Icons.calendar_today),
                   onTap: _pickDate,
                 ),
+
+                // Selector de programa
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Programa',
@@ -130,40 +190,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
+
+                // Botón de registro
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      // Validar que los campos requeridos no sean nulos
-                      if (_selectedDate != null && _selectedProgram != null) {
-                        // Convertir la fecha a una cadena (por ejemplo, 'YYYY-MM-DD')
-                        String formattedDate =
-                            "${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}";
-
-                        // Llamar a la función de registro con valores no nulos
-                        await _authService.registerUser(
-                          _idController.text,
-                          _usernameController.text,
-                          _emailController.text,
-                          _passwordController.text,
-                          formattedDate, // Aquí pasas la fecha como cadena
-                          _selectedProgram!, // Asegurar que no sea nulo con '!'
-                        );
-
-                        // Mostrar mensaje de éxito o error
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Registrado con éxito')),
-                        );
-                      } else {
-                        // Mostrar un mensaje de error si faltan campos
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Por favor completa todos los campos')),
-                        );
-                      }
-                    },
-                    child: const Text('Registrarse'),
+                    onPressed: _registerUser,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF004D40), // Verde oscuro
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -171,6 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
+                    child: const Text('Registrarse'),
                   ),
                 ),
               ],
@@ -181,3 +214,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+
