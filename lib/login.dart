@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Correo',
+                  labelText: 'Correo electrónico',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
@@ -66,8 +66,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content:
-                                Text('Por favor, ingresa todos los campos')),
+                            content: Text(
+                                'Por favor, ingresa tu correo y contraseña')),
                       );
                       return;
                     }
@@ -121,3 +121,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
