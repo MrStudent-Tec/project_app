@@ -19,6 +19,7 @@ class ubook extends StatelessWidget {
       home: const LoginScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/users': (context) => const UsersScreen(),
         '/calendar': (context) => const CalendarScreen(),
