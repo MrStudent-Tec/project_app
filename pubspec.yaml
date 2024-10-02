@@ -15,8 +15,9 @@ dependencies:
   cupertino_icons: ^1.0.6
   http: ^0.13.3
   logger: ^1.1.0
-  image_picker: ^1.1.2
-  font_awesome_flutter: ^10.0.0
+  cached_network_image: ^3.2.3
+  font_awesome_flutter: ^10.4.0
+  image_picker: ^0.8.7+3
 
 dev_dependencies:
   flutter_test:
