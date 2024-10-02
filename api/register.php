@@ -7,31 +7,35 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 // Conexión a la base de datos
 $conn = new mysqli('localhost', 'root', '', 'ubook');
 
-
 // Verificar si la conexión fue exitosa
 if ($conn->connect_error) {
     die(json_encode(['success' => false, 'message' => "Error de conexión: " . $conn->connect_error]));
 }
 
-// Obtener datos del cuerpo de la solicitud POST y validar que no estén vacíos
-$id_usuario = isset($_POST['id_usuario']) ? $_POST['id_usuario'] : '';
-$correo = isset($_POST['correo']) ? $_POST['correo'] : '';
-$nombre_usuario = isset($_POST['nombre_usuario']) ? $_POST['nombre_usuario'] : '';
-$contrasena = isset($_POST['contrasena']) ? $_POST['contrasena'] : '';
-$fecha_nac = isset($_POST['fecha_nac']) ? $_POST['fecha_nac'] : '';
-$programa = isset($_POST['programa']) ? $_POST['programa'] : '';
+// Obtener datos del cuerpo de la solicitud POST
+$identy = isset($_POST['identy']) ? (int)$_POST['identy'] : 0;
+$name = isset($_POST['name']) ? $_POST['name'] : '';
+$email = isset($_POST['email']) ? $_POST['email'] : '';
+$password = isset($_POST['password']) ? $_POST['password'] : '';
+$birthdate = isset($_POST['birthdate']) ? $_POST['birthdate'] : '';
+$program = isset($_POST['program']) ? $_POST['program'] : '';
+
+// Imprimir los datos recibidos
+var_dump($_POST);
 
 // Validación de campos vacíos
-if (empty($id_usuario)||empty($correo) || empty($nombre_usuario) || empty($contrasena) || empty($fecha_nac) || empty($programa)) {
+if (empty($identy) || empty($name) || empty($email) || empty($password) || empty($birthdate) || empty($program)) {
     die(json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios']));
 }
 
 // Encriptar la contraseña
-$contrasena_hash = password_hash($contrasena, PASSWORD_DEFAULT);
+$password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-// Preparar la consulta para insertar el nuevo usuario
-$stmt = $conn->prepare("INSERT INTO usuario (id_usuario, correo, nombre_usuario, contrasena, fecha_nac, programa) VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("isssss",$id_usuario, $correo, $nombre_usuario, $contrasena_hash, $fecha_nac, $programa);
+// Preparar la consulta para insertar el nuevo usuario en la tabla dateperson
+$stmt = $conn->prepare("INSERT INTO dateperson (identy, name, email, password, birthdate, program) VALUES (?, ?, ?, ?, ?, ?)");
+
+// Asignar los valores a la consulta preparada
+$stmt->bind_param("isssss", $identy, $name, $email, $password_hash, $birthdate, $program);
 
 // Ejecutar la consulta y verificar si fue exitosa
 if ($stmt->execute()) {
