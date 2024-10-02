@@ -8,16 +8,11 @@ class AuthService {
   final logger = Logger();
 
   // URL base de la API
-  final String baseUrl = "http://127.0.0.1/api/";
+  final String baseUrl = "http://127.0.0.1/api";
 
   // Método para registrar un usuario
-  Future<void> registerUser(
-      String id_usuario,
-      String email,
-      String nombreUsuario,
-      String contrasena,
-      String fecNac,
-      String programa) async {
+  Future<void> registerUser(String identy, String name, String email,
+      String password, String birthDate, String program) async {
     final String registerUrl =
         "$baseUrl/register.php"; // Ruta completa para el registro
 
@@ -25,15 +20,14 @@ class AuthService {
       final response = await http.post(
         Uri.parse(registerUrl),
         body: {
-          'id_usuario': id_usuario,
-          'correo': email,
-          'nombre_usuario': nombreUsuario,
-          'contrasena': contrasena,
-          'fecha_nac': fecNac,
-          'programa': programa,
+          'identy': identy,
+          'name': name,
+          'email': email,
+          'password': password,
+          'birthdate': birthDate,
+          'program': program,
         },
       );
-
       // Imprimir la respuesta completa del servidor
       logger.i("Respuesta del servidor: ${response.body}");
 
@@ -57,8 +51,8 @@ class AuthService {
     }
   }
 
-// Método para iniciar sesión
-  Future<String> loginUser(String correo, String contrasena) async {
+  // Método para iniciar sesión
+  Future<String> loginUser(String email, String password) async {
     final String loginUrl =
         "$baseUrl/login.php"; // Ruta completa para el inicio de sesión
 
@@ -66,8 +60,8 @@ class AuthService {
       final response = await http.post(
         Uri.parse(loginUrl),
         body: {
-          'correo': correo,
-          'contrasena': contrasena,
+          'email': email,
+          'password': password,
         },
       );
 
@@ -96,6 +90,34 @@ class AuthService {
     } catch (e) {
       logger.e("Error al iniciar sesión: $e");
       return 'Error de conexión al servidor';
+    }
+  }
+
+  // Método para verificar si el correo ya está registrado
+  Future<bool> checkEmailExists(String email) async {
+    final String checkEmailUrl =
+        "$baseUrl/check_email.php"; // URL del script que verifica el correo
+
+    try {
+      final response = await http.post(
+        Uri.parse(checkEmailUrl),
+        body: {
+          'email': email,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['exists'] ??
+            false; 
+      } else {
+        logger
+            .e("Error de servidor: ${response.statusCode} - ${response.body}");
+        return false; // En caso de error de servidor, retorna false
+      }
+    } catch (e) {
+      logger.e("Error al verificar el correo: $e");
+      return false; // En caso de error de red, retornar false
     }
   }
 
