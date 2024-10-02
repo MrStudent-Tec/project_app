@@ -16,29 +16,29 @@ if ($conn->connect_error) {
 }
 
 // Obtener datos del cuerpo de la solicitud POST y validarlos
-$correo = isset($_POST['correo']) ? $_POST['correo'] : '';
-$contrasena = isset($_POST['contrasena']) ? $_POST['contrasena'] : '';
+$email = isset($_POST['email']) ? $_POST['email'] : '';
+$password = isset($_POST['password']) ? $_POST['password'] : '';
 
-if (empty($correo) || empty($contrasena)) {
-    die(json_encode(['success' => false, 'message' => 'Correo y contraseña son obligatorios']));
+if (empty($email) || empty($password)) {
+    die(json_encode(['success' => false, 'message' => 'Email y contraseña son obligatorios']));
 }
 
-// Preparar una declaración para buscar el usuario por correo
-$stmt = $conn->prepare("SELECT * FROM usuario WHERE correo = ?");
-$stmt->bind_param("s", $correo);
+// Preparar una declaración para buscar el usuario por email en la tabla dateperson
+$stmt = $conn->prepare("SELECT * FROM dateperson WHERE email = ?");
+$stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     // Si el usuario existe, verificar la contraseña
     $row = $result->fetch_assoc();
-    if (password_verify($contrasena, $row['contrasena'])) {
+    if (password_verify($password, $row['password'])) {
         echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Contraseña incorrecta']);
+        echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Correo no encontrado']);
+    echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
 }
 
 // Cerrar la declaración y la conexión
