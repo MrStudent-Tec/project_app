@@ -7,7 +7,6 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 // Conexión a la base de datos
 $conn = new mysqli('localhost', 'root', '', 'ubook');
 
-
 if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
@@ -16,7 +15,7 @@ if ($conn->connect_error) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $facebook = $_POST['facebook'];
     $instagram = $_POST['instagram'];
-    $userId = $_POST['id_usuario']; // Identificador del usuario para actualizar el registro
+    $userId = $_POST['uid']; // Identificador del usuario para actualizar el registro
 
     $profileImagePath = null;
     $coverImagePath = null;
@@ -35,18 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         move_uploaded_file($coverImage['tmp_name'], $coverImagePath);
     }
 
-    // Actualizar los datos del usuario en la base de datos
-    $sql = "UPDATE usuario SET facebook = ?, instagram = ?";
+    // Actualizar los datos del usuario en la base de datos (tabla dateperson)
+    $sql = "UPDATE dateperson SET facebook = ?, instagram = ?";
 
     if ($profileImagePath) {
-        $sql .= ", perfil = ?";
+        $sql .= ", profile = ?";
     }
 
     if ($coverImagePath) {
-        $sql .= ", portada = ?";
+        $sql .= ", cover = ?";
     }
 
-    $sql .= " WHERE id_usuario = ?";
+    $sql .= " WHERE uid = ?";
 
     $stmt = $conn->prepare($sql);
 
