@@ -10,22 +10,22 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
+$user_id = $_POST['user_id'];
 
-$userId = $_POST['userId'];
-
-$sql = "SELECT * FROM ChatList WHERE userId = ?";
+// Corrección: El nombre correcto de la tabla es 'chatlist' (en minúsculas)
+$sql = "SELECT * FROM chatlist WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $userId);
+$stmt->bind_param("s", $user_id);
 
 $stmt->execute();
 $result = $stmt->get_result();
-$chatList = [];
+$chatlist = [];
 
 while ($row = $result->fetch_assoc()) {
-    $chatList[] = $row;
+    $chatlist[] = $row;
 }
 
-echo json_encode($chatList);
+echo json_encode($chatlist);
 
 $stmt->close();
 $conn->close();
