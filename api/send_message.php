@@ -11,16 +11,17 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $sender = $_POST['sender'];
-    $receiver = $_POST['receiver'];
+    $sender_id = $_POST['sender_id'];
+    $receiver_id = $_POST['receiver_id'];
     $message = $_POST['message'];
-    $isseen = 0; // Por defecto, el mensaje no ha sido visto
-    $messageId = uniqid();
+    $is_seenmessages = 0; // Por defecto, el mensaje no ha sido visto
+    $url = $_POST['url'] ?? NULL; // Puede ser NULL
 
-    $sql = "INSERT INTO chats (sender, receiver, message, isseen, messageId) VALUES (?, ?, ?, ?, ?)";
+    // Insertar el mensaje en la base de datos
+    $sql = "INSERT INTO messages (sender_id, receiver_id, message, is_seenmessages, url) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssis", $sender, $receiver, $message, $isseen, $messageId);
-    
+    $stmt->bind_param("iisis", $sender_id, $receiver_id, $message, $is_seenmessages, $url);
+
     if ($stmt->execute()) {
         echo json_encode(array("status" => "success"));
     } else {
