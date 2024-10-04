@@ -10,11 +10,11 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
+$sender_id = $_GET['sender_id'];
+$receiver_id = $_GET['receiver_id'];
 
-$senderId = $_GET['senderId'];
-$receiverId = $_GET['receiverId'];
 
-$sql = "SELECT * FROM chats WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY id ASC";
+$sql = "SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY message_id ASC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ssss", $senderId, $receiverId, $receiverId, $senderId);
 $stmt->execute();
