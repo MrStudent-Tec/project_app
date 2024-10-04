@@ -3,13 +3,11 @@ class DatePerson {
   String name;
   String profile;
   String cover;
-  String status; // Cambiado a "status"
+  String status;
   String search;
   String facebook;
   String instagram;
-  String dd;
-  String mm;
-  String aaaa;
+  DateTime birthdate; // Cambiado a DateTime
   String program;
 
   DatePerson({
@@ -17,13 +15,11 @@ class DatePerson {
     required this.name,
     required this.profile,
     required this.cover,
-    required this.status, // Cambiado a "status"
+    required this.status,
     required this.search,
     required this.facebook,
     required this.instagram,
-    required this.dd,
-    required this.mm,
-    required this.aaaa,
+    required this.birthdate, // Cambiado a DateTime
     required this.program,
   });
 
@@ -34,13 +30,12 @@ class DatePerson {
       name: json['name'],
       profile: json['profile'],
       cover: json['cover'],
-      status: json['status'], // Cambiado a "status"
+      status: json['status'],
       search: json['search'],
       facebook: json['facebook'],
       instagram: json['instagram'],
-      dd: json['dd'],
-      mm: json['mm'],
-      aaaa: json['aaaa'],
+      birthdate:
+          DateTime.parse(json['birthdate']), // Convierte el string a DateTime
       program: json['program'],
     );
   }
@@ -52,13 +47,12 @@ class DatePerson {
       'name': name,
       'profile': profile,
       'cover': cover,
-      'status': status, // Cambiado a "status"
+      'status': status,
       'search': search,
       'facebook': facebook,
       'instagram': instagram,
-      'dd': dd,
-      'mm': mm,
-      'aaaa': aaaa,
+      'birthdate':
+          birthdate.toIso8601String(), // Convierte DateTime a string ISO 8601
       'program': program,
     };
   }
