@@ -1,4 +1,4 @@
-<?php
+<?php 
 // Habilitar CORS
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -33,7 +33,8 @@ if ($result->num_rows > 0) {
     // Si el usuario existe, verificar la contraseña
     $row = $result->fetch_assoc();
     if (password_verify($password, $row['password'])) {
-        echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso']);
+        // Devolver el 'udi' junto con el éxito del inicio de sesión
+        echo json_encode(['success' => true, 'message' => 'Inicio de sesion exitoso', 'uid' => $row['uid']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
     }
