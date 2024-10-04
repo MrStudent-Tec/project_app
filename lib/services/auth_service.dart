@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // Inicializar el logger
@@ -51,7 +52,6 @@ class AuthService {
     }
   }
 
-  // Método para iniciar sesión
   Future<String> loginUser(String email, String password) async {
     final String loginUrl =
         "$baseUrl/login.php"; // Ruta completa para el inicio de sesión
@@ -65,21 +65,27 @@ class AuthService {
         },
       );
 
-      // Imprimir la respuesta completa del servidor
-      logger.i("Respuesta del servidor: ${response.body}");
+      logger.i(
+          "Respuesta del servidor: ${response.body}"); // Verifica la respuesta
 
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(response.body);
           if (data['success']) {
-            logger.i("Inicio de sesión exitoso: ${data['message']}");
-            return 'success'; // Inicio de sesión exitoso
+            // No imprimir el uid, solo guardarlo
+            String uid = data['uid']
+                .toString(); // Asegúrate de convertir a String si es necesario
+
+            // Guardar el uid
+            await saveUserId(uid);
+
+            return 'success'; // Retorna un string que indica éxito
           } else {
             logger.w("Error de inicio de sesión: ${data['message']}");
-            return data['message']; // Mensaje específico del error
+            return data['message']; // Mensaje de error
           }
         } catch (e) {
-          logger.e("La respuesta no es un JSON válido: ${response.body}");
+          logger.e("Error al decodificar JSON: $e");
           return 'Error procesando la respuesta del servidor';
         }
       } else {
@@ -91,6 +97,16 @@ class AuthService {
       logger.e("Error al iniciar sesión: $e");
       return 'Error de conexión al servidor';
     }
+  }
+
+  Future<void> saveUserId(String uid) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('uid', uid); // Guardar usando 'uid'
+  }
+
+  Future<String?> getUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('uid'); // Recuperar usando 'uid'
   }
 
   // Método para verificar si el correo ya está registrado
@@ -108,8 +124,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['exists'] ??
-            false; 
+        return data['exists'] ?? false;
       } else {
         logger
             .e("Error de servidor: ${response.statusCode} - ${response.body}");
