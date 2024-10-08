@@ -123,7 +123,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   userName:
                       person['name'] ?? 'Unknown User', // Nombre por defecto
                   userProfileImage: person['profile'] ??
-                      'https://example.com/default-profile.png', // Imagen por defecto
+                      'assets/person_icon.png', // Imagen por defecto
                   currentUserId: currentUserId, // Asegúrate de que no sea null
                 ),
               ),

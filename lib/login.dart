@@ -25,8 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/logo.png',
+              Image.network(
+                'assets/icon/ubook1.png',
                 height: 150,
               ),
               const SizedBox(height: 30),
@@ -121,4 +121,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

@@ -33,40 +33,26 @@ class _ChatScreenState extends State<ChatScreen> {
     _retrieveMessages();
   }
 
-  //Enviar mensajes
+  // Enviar mensaje
   Future<void> _sendMessage() async {
     String message = _messageController.text;
 
     if (message.isNotEmpty) {
-      try {
-        var response = await http.post(
-          Uri.parse('http://127.0.0.1/api/send_message.php'),
-          body: {
-            'sender': widget.currentUserId,
-            'receiver': widget.userId,
-            'message': message,
-          },
-        );
+      var response = await http.post(
+        Uri.parse('http://127.0.0.1/api/send_message.php'),
+        body: {
+          'sender': widget.currentUserId,
+          'receiver': widget.userId,
+          'message': message,
+        },
+      );
 
-        // Antes de decodificar el JSON, imprimir la respuesta completa
-        print('Respuesta del servidor: ${response.body}');
-
-        // Verifica si el statusCode es correcto
-        if (response.statusCode == 200) {
-          var jsonResponse = jsonDecode(response.body);
-          if (jsonResponse['status'] == 'success') {
-            setState(() {
-              _messageController.clear();
-              _retrieveMessages();
-            });
-          } else {
-            print('Error en el servidor: ${jsonResponse['message']}');
-          }
-        } else {
-          print('Error HTTP: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Error al enviar mensaje: $e');
+      var jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['status'] == 'success') {
+        setState(() {
+          _messageController.clear();
+          _retrieveMessages();
+        });
       }
     }
   }
@@ -133,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               backgroundImage: widget.userProfileImage.isNotEmpty
                   ? NetworkImage(widget.userProfileImage)
-                  : AssetImage('assets/person_icon.png') as ImageProvider,
+                  : AssetImage('assets/default_profile.png') as ImageProvider,
             ),
             const SizedBox(width: 8),
             Text(widget.userName),
