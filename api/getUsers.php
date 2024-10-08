@@ -13,7 +13,7 @@ if ($conn->connect_error) {
 }
 
 
-$sql = "SELECT * FROM usuarios";
+$sql = "SELECT * FROM dateperson";
 $result = $conn->query($sql);
 
 $users = [];
