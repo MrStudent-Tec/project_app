@@ -3,17 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-class MessageChatScreen extends StatefulWidget {
-  final String userIdVisit;
-  final String currentUserId;
+// Pantalla de chat, que recibe los datos del usuario seleccionado
+class ChatScreen extends StatefulWidget {
+  final String userId;
+  final String userName;
+  final String userProfileImage;
+  final String currentUserId; // Añadido el ID del usuario actual
 
-  MessageChatScreen({required this.userIdVisit, required this.currentUserId});
+  const ChatScreen({
+    Key? key,
+    required this.userId,
+    required this.userName,
+    required this.userProfileImage,
+    required this.currentUserId,
+  }) : super(key: key);
 
   @override
-  _MessageChatScreenState createState() => _MessageChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _MessageChatScreenState extends State<MessageChatScreen> {
+class _ChatScreenState extends State<ChatScreen> {
   TextEditingController _messageController = TextEditingController();
   List<dynamic> _messages = [];
   bool notify = false;
@@ -24,26 +33,40 @@ class _MessageChatScreenState extends State<MessageChatScreen> {
     _retrieveMessages();
   }
 
-  // Enviar mensaje
+  //Enviar mensajes
   Future<void> _sendMessage() async {
     String message = _messageController.text;
 
     if (message.isNotEmpty) {
-      var response = await http.post(
-        Uri.parse('http://127.0.0.1/api/send_message.php'),
-        body: {
-          'sender': widget.currentUserId,
-          'receiver': widget.userIdVisit,
-          'message': message,
-        },
-      );
+      try {
+        var response = await http.post(
+          Uri.parse('http://127.0.0.1/api/send_message.php'),
+          body: {
+            'sender': widget.currentUserId,
+            'receiver': widget.userId,
+            'message': message,
+          },
+        );
 
-      var jsonResponse = jsonDecode(response.body);
-      if (jsonResponse['status'] == 'success') {
-        setState(() {
-          _messageController.clear();
-          _retrieveMessages();
-        });
+        // Antes de decodificar el JSON, imprimir la respuesta completa
+        print('Respuesta del servidor: ${response.body}');
+
+        // Verifica si el statusCode es correcto
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(response.body);
+          if (jsonResponse['status'] == 'success') {
+            setState(() {
+              _messageController.clear();
+              _retrieveMessages();
+            });
+          } else {
+            print('Error en el servidor: ${jsonResponse['message']}');
+          }
+        } else {
+          print('Error HTTP: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Error al enviar mensaje: $e');
       }
     }
   }
@@ -52,7 +75,7 @@ class _MessageChatScreenState extends State<MessageChatScreen> {
   Future<void> _retrieveMessages() async {
     var response = await http.get(
       Uri.parse(
-          'http://127.0.0.1/api/retrieve_messages.php?senderId=${widget.currentUserId}&receiverId=${widget.userIdVisit}'),
+          'http://127.0.0.1/api/retrieve_messages.php?senderId=${widget.currentUserId}&receiverId=${widget.userId}'),
     );
 
     var jsonResponse = jsonDecode(response.body);
@@ -63,8 +86,8 @@ class _MessageChatScreenState extends State<MessageChatScreen> {
 
   // Subir imagen
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker()
-        .pickImage(source: ImageSource.gallery); // Corrección aquí
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       var request = http.MultipartRequest(
           'POST', Uri.parse('http://127.0.0.1/api/upload_image.php'));
@@ -83,12 +106,13 @@ class _MessageChatScreenState extends State<MessageChatScreen> {
     }
   }
 
+  // Enviar imagen como mensaje
   Future<void> _sendMessageWithImage(String imageUrl) async {
     var response = await http.post(
       Uri.parse('http://127.0.0.1/api/send_message.php'),
       body: {
         'sender': widget.currentUserId,
-        'receiver': widget.userIdVisit,
+        'receiver': widget.userId,
         'message': 'Sent you an image.',
         'url': imageUrl,
       },
@@ -104,7 +128,17 @@ class _MessageChatScreenState extends State<MessageChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat'),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: widget.userProfileImage.isNotEmpty
+                  ? NetworkImage(widget.userProfileImage)
+                  : AssetImage('assets/person_icon.png') as ImageProvider,
+            ),
+            const SizedBox(width: 8),
+            Text(widget.userName),
+          ],
+        ),
       ),
       body: Column(
         children: [
