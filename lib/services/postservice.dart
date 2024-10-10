@@ -1,0 +1,71 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class PostService {
+  // URLs separadas para cada operación
+  final String getPostsUrl = "http://127.0.0.1/api/post/get_posts.php";
+  final String addPostUrl = "http://127.0.0.1/api/post/add_post.php";
+  final String toggleLikeUrl = "http://127.0.0.1/api/post/update_likes.php";
+
+  // Obtener todas las publicaciones
+  Future<List<Map<String, dynamic>>> getPosts() async {
+    try {
+      final response = await http.get(Uri.parse(getPostsUrl));
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(json.decode(response.body));
+      } else {
+        throw Exception('Error al cargar publicaciones: ${response.body}');
+      }
+    } catch (e) {
+      print("Error en getPosts: $e");
+      rethrow;
+    }
+  }
+
+  // Añadir una nueva publicación
+  Future<void> addPost(int userId, String content) async {
+    try {
+      final response = await http.post(
+        Uri.parse(addPostUrl),
+        body: {
+          'user_id': userId.toString(),
+          'content': content,
+        },
+      );
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al añadir publicación: ${response.body}');
+      }
+    } catch (e) {
+      print("Error en addPost: $e");
+      rethrow;
+    }
+  }
+
+  // Actualizar likes
+  Future<void> toggleLike(int postId, bool isLiked) async {
+    try {
+      final response = await http.put(
+        Uri.parse(toggleLikeUrl),
+        body: {
+          'post_id': postId.toString(),
+          'action': isLiked ? 'unlike' : 'like',
+        },
+      );
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar likes: ${response.body}');
+      }
+    } catch (e) {
+      print("Error en toggleLike: $e");
+      rethrow;
+    }
+  }
+}
