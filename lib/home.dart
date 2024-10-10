@@ -1,31 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:ubook/calendar.dart'; // Importar la pantalla de calendario
+import 'package:ubook/calendar.dart';
+import 'package:ubook/services/postservice.dart';
+import 'package:ubook/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   // Lista de publicaciones
   List<Map<String, dynamic>> posts = [];
+  final PostService _postService = PostService();
+  String? userId; // Variable para almacenar el ID del usuario
 
-  // Método para añadir una nueva publicación
-  void _addPost(String content) {
-    setState(() {
-      posts.add({
-        'author': 'Usuario',
-        'date': DateTime.now().toString(),
-        'content': content,
-        'likes': 0,
-        'liked': false,
-      });
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId(); // Cargar el ID del usuario
   }
 
-  // Método para mostrar el formulario de añadir publicación
+  void _loadUserId() async {
+    AuthService authService = AuthService();
+    userId = await authService.getUserId(); // Recuperar el ID del usuario
+    if (userId != null) {
+      _loadPosts(); // Cargar publicaciones solo si el ID está disponible
+    } else {
+      // Manejar caso en que no se pueda recuperar el ID del usuario
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo recuperar el ID de usuario.')),
+      );
+    }
+  }
+
+  // Cargar publicaciones desde la API
+  void _loadPosts() async {
+    try {
+      List<Map<String, dynamic>> loadedPosts = await _postService.getPosts();
+      setState(() {
+        posts = loadedPosts;
+      });
+    } catch (e) {
+      // Manejar errores al cargar publicaciones
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar publicaciones: $e')),
+      );
+    }
+  }
+
+  // Añadir una nueva publicación
+  void _addPost(String content) async {
+    if (userId != null) {
+      // Verificar si el ID del usuario está disponible
+      try {
+        await _postService.addPost(
+            int.parse(userId!), content); // Convertir el ID a int
+        _loadPosts(); // Recargar publicaciones después de añadir
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al añadir publicación: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ID de usuario no disponible')),
+      );
+    }
+  }
+
+  // Mostrar el formulario de añadir publicación
   void _showAddPostDialog() {
     String newPostContent = '';
 
@@ -63,16 +108,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Método para manejar el estado del "like"
-  void _toggleLike(int index) {
-    setState(() {
-      if (posts[index]['liked']) {
-        posts[index]['likes']--;
-      } else {
-        posts[index]['likes']++;
-      }
-      posts[index]['liked'] = !posts[index]['liked'];
-    });
+  // Manejar el "like" o "unlike" de una publicación
+  void _toggleLike(int index) async {
+    try {
+      bool isLiked = posts[index]['liked'] ?? false;
+      await _postService.toggleLike(posts[index]['post_id'], isLiked);
+      setState(() {
+        if (isLiked) {
+          posts[index]['likes']--;
+        } else {
+          posts[index]['likes']++;
+        }
+        posts[index]['liked'] = !(posts[index]['liked'] ?? false);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar likes: $e')),
+      );
+    }
   }
 
   @override
@@ -117,19 +170,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         backgroundColor: Colors.green, // Color del avatar
-                        child: const Icon(Icons.person, color: Colors.white),
+                        child: Icon(Icons.person, color: Colors.white),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          posts[index]['author']!,
+                          posts[index]['author'] ?? 'Autor desconocido',
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
                       Text(
-                        posts[index]['date']!,
+                        posts[index]['date'] ?? '',
                         style: const TextStyle(color: Colors.grey),
                         textAlign: TextAlign.right,
                       ),
@@ -137,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    posts[index]['content']!,
+                    posts[index]['content'] ?? '',
                     style: const TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 10),
@@ -145,11 +198,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       IconButton(
                         icon: Icon(
-                          posts[index]['liked']
+                          (posts[index]['liked'] ?? false)
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color:
-                              posts[index]['liked'] ? Colors.red : Colors.green,
+                          color: (posts[index]['liked'] ?? false)
+                              ? Colors.red
+                              : Colors.green,
                         ),
                         onPressed: () {
                           _toggleLike(index);
