@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 
 class PostService {
   // URLs separadas para cada operación
-  final String getPostsUrl = "http://127.0.0.1/api/post/get_posts.php";
-  final String addPostUrl = "http://127.0.0.1/api/post/add_post.php";
-  final String toggleLikeUrl = "http://127.0.0.1/api/post/update_likes.php";
+  final String getPostsUrl = "http://127.0.0.1/api/get_post.php";
+  final String addPostUrl = "http://127.0.0.1/api/add_post.php";
+  final String toggleLikeUrl = "http://127.0.0.1/api/update_likes.php";
 
   // Obtener todas las publicaciones
   Future<List<Map<String, dynamic>>> getPosts() async {
@@ -47,20 +47,22 @@ class PostService {
     }
   }
 
-  // Actualizar likes
-  Future<void> toggleLike(int postId, bool isLiked) async {
+// Actualizar likes
+  Future<Map<String, dynamic>> toggleLike(int postId, bool isLiked) async {
     try {
       final response = await http.put(
         Uri.parse(toggleLikeUrl),
         body: {
-          'post_id': postId.toString(),
+          'post_id': postId.toString(), // Convertir a String
           'action': isLiked ? 'unlike' : 'like',
         },
       );
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 200) {
+        // Decodificar el cuerpo de la respuesta como JSON
+        final data = jsonDecode(response.body);
+        return data; // Devolver los datos decodificados
+      } else {
         throw Exception('Error al actualizar likes: ${response.body}');
       }
     } catch (e) {
