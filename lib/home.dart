@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ubook/calendar.dart';
 import 'package:ubook/services/postservice.dart';
 import 'package:ubook/services/auth_service.dart';
+import 'package:ubook/notification_screen.dart'; // Importar la nueva pantalla de notificaciones
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -140,6 +141,28 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: const Color(0xFF004D40), // Verde oscuro
         actions: [
+          // Icono de notificaciones
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            color: Colors.white,
+            onPressed: () {
+              if (userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationScreen(
+                      userId: int.parse(userId!), // Pasar el userId como entero
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('No se pudo recuperar el ID de usuario')),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.people),
             color: Colors.white,
