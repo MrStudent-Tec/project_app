@@ -112,14 +112,16 @@ class HomeScreenState extends State<HomeScreen> {
   void _toggleLike(int index) async {
     try {
       bool isLiked = posts[index]['liked'] ?? false;
-      await _postService.toggleLike(posts[index]['post_id'], isLiked);
+
+      // Enviar la actualización al servidor
+      final response = await _postService.toggleLike(
+          int.parse(posts[index]['post_id'].toString()), isLiked);
+
+      // Si la respuesta es exitosa, actualizar la UI con el número de likes actualizado
       setState(() {
-        if (isLiked) {
-          posts[index]['likes']--;
-        } else {
-          posts[index]['likes']++;
-        }
-        posts[index]['liked'] = !(posts[index]['liked'] ?? false);
+        posts[index]['likes'] = response[
+            'likes']; // Asegúrate de que 'likes' viene de la respuesta decodificada
+        posts[index]['liked'] = !isLiked; // Cambiar el estado de "liked"
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
