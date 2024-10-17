@@ -1,22 +1,39 @@
 <?php
+// Habilitar CORS
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header('Content-Type: application/json');
 
-include 'db.php';  // Asegúrate de incluir tu conexión a la base de datos
+include 'db.php';
 
-$user_id = $_GET['user_id']; // Asumiendo que pasas el ID del usuario en la URL
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    $user_id = $_GET['user_id'];
 
-$sql = "SELECT title, message, is_read FROM notifications WHERE user_id = '$user_id' ORDER BY created_at DESC";
-$result = $conn->query($sql);
+    // Validar que el ID de usuario no esté vacío
+    if (!empty($user_id)) {
+        // Consulta para obtener las notificaciones del usuario
+        $sql = "SELECT id, title, message, is_read, created_at FROM notifications WHERE user_id = '$user_id' ORDER BY created_at DESC";
+        $result = mysqli_query($conn, $sql);
 
-$notifications = array();
+        if ($result) {
+            $notifications = [];
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $notifications[] = $row;
+            while ($row = mysqli_fetch_assoc($result)) {
+                $notifications[] = $row;
+            }
+
+            // Devolver las notificaciones en formato JSON
+            echo json_encode($notifications);
+        } else {
+            echo json_encode(['error' => 'Error al obtener las notificaciones.']);
+        }
+    } else {
+        echo json_encode(['error' => 'ID de usuario no proporcionado.']);
     }
+} else {
+    echo json_encode(['error' => 'Método no permitido.']);
 }
 
-echo json_encode($notifications);
 $conn->close();
 ?>
