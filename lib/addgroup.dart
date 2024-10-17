@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:ubook/services/group_service.dart';
+import 'package:ubook/services/auth_service.dart'; // Importa el servicio de autenticación
 
 class AddGroupScreen extends StatelessWidget {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
+  final GroupService _groupService = GroupService(); // Instancia del servicio
+  final AuthService _authService =
+      AuthService(); // Instancia del servicio de autenticación
+
+  AddGroupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,17 +35,40 @@ class AddGroupScreen extends StatelessWidget {
                 String name = _nameController.text;
                 String message = _messageController.text;
 
-                // Aquí haces la conexión al PHP para guardar el grupo en la base de datos
-                final response = await _sendGroupData(name, message);
+                // Obtener el uid del usuario logueado
+                String? createdBy = await _authService.getUserId();
+                if (createdBy == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error: UID no encontrado.')),
+                  );
+                  return; // No continuar si el UID no se recupera
+                }
 
-                if (response) {
-                  // Si se guarda con éxito, retornamos el nuevo grupo a la pantalla anterior
+                // Si no se proporciona una URL de imagen, usar un icono de Flutter por defecto
+                String groupImage = 'URL_IMAGEN_GRUPO'; // Predeterminada
+                if (groupImage.isEmpty || groupImage == 'URL_IMAGEN_GRUPO') {
+                  // Icono por defecto de Flutter si no hay imagen
+                  groupImage =
+                      'flutter_icon_default'; // Esto es simbólico, ya que no se puede usar directamente en la UI
+                }
+
+                // Usamos el servicio para crear el grupo con el UID dinámico y el mensaje inicial
+                bool success = await _groupService.createGroup(
+                    name, groupImage, createdBy, message);
+
+                if (success) {
+                  // Si el grupo se creó exitosamente, lo retornamos a la pantalla anterior
                   Navigator.pop(context, {
                     'name': name,
-                    'lastMessage': message,
-                    'image':
-                        'URL_IMAGEN_GRUPO', // Imagen predeterminada o cargada
+                    'lastMessage':
+                        message, // Retornar el mensaje inicial como último mensaje
+                    'image': groupImage,
                   });
+                } else {
+                  // Muestra un mensaje de error si falla la creación del grupo
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error al crear el grupo')),
+                  );
                 }
               },
               child: const Text('Agregar Grupo'),
@@ -47,11 +77,5 @@ class AddGroupScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<bool> _sendGroupData(String name, String message) async {
-    // Conexión PHP para enviar los datos
-    // Retorna true si se guarda con éxito
-    return true;
   }
 }
