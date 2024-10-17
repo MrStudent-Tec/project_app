@@ -1,65 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:ubook/addgroup.dart'; // La pantalla que agregará el grupo
+import 'dart:async';
+import 'package:ubook/services/group_service.dart';
+import 'package:ubook/services/auth_service.dart';
+import 'package:ubook/addgroup.dart';
+import 'package:ubook/group_window.dart'; // Asegúrate de importar GroupWindow
 
 class GroupScreen extends StatefulWidget {
-  const GroupScreen({super.key});
-
   @override
   _GroupScreenState createState() => _GroupScreenState();
 }
 
 class _GroupScreenState extends State<GroupScreen> {
-  List<Map<String, dynamic>> groups = []; // Lista vacía de grupos
+  final AuthService _authService = AuthService();
+  final GroupService _groupService = GroupService();
+  List<Map<String, dynamic>> groups = [];
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchGroups(); // Cargar los grupos al iniciar
+    loadGroups();
+    _startPolling(); // Iniciar polling para actualizar grupos periódicamente
   }
 
-  void _fetchGroups() async {
-    // Llamada al PHP para obtener los grupos desde la base de datos
-    // Actualiza la lista con los grupos obtenidos
-    // Aquí puedes hacer una llamada HTTP
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    print("Polling timer cancelled."); // Añadir esta línea para depurar
+    super.dispose();
   }
 
-  void _addGroup(Map<String, dynamic> group) {
-    setState(() {
-      groups.add(group);
+  // Iniciar polling cada 10 segundos (ajusta si es necesario)
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      loadGroups();
     });
+  }
+
+  // Cargar los grupos
+  Future<void> loadGroups() async {
+    String? currentUserId = await _authService.getUserId();
+
+    if (currentUserId != null) {
+      List<Map<String, dynamic>> loadedGroups =
+          await _groupService.getGroups(currentUserId);
+
+      setState(() {
+        groups = loadedGroups;
+      });
+
+      print("Grupos cargados: $groups");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: groups.length, // Número de grupos en la base de datos
-        itemBuilder: (context, index) {
-          final group = groups[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(group['image']),
+      body: groups.isEmpty
+          ? Center(
+              child:
+                  Text('No hay grupos disponibles')) // Mensaje si no hay grupos
+          : ListView.builder(
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green,
+                    child: Icon(Icons.group, color: Colors.white),
+                  ),
+                  title: Text(groups[index]['group_name'] ?? 'Sin nombre'),
+                  subtitle: Text(groups[index]['lastMessage'] ?? 'Sin mensaje'),
+                  onTap: () {
+                    // Navegar a la pantalla GroupWindow
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GroupWindow(
+                          groupId: groups[index]['group_id']
+                              .toString(), // Asegúrate de que sea un String
+                          creatorId: groups[index]['created_by']
+                              .toString(), // Asegúrate de que sea un String
+                          groupName: groups[index]['group_name']
+                              .toString(), // Pasar el nombre del grupo
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            title: Text(group['name'],
-                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-            subtitle: Text(group['lastMessage'] ?? 'No hay mensajes aún',
-                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Navega a la pantalla para agregar un nuevo grupo
           final newGroup = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddGroupScreen()),
           );
-          if (newGroup != null) {
-            _addGroup(newGroup);
+
+          // Verificar que el nuevo grupo no sea null y tenga los valores requeridos
+          if (newGroup != null &&
+              newGroup['group_name'] != null &&
+              newGroup['lastMessage'] != null) {
+            setState(() {
+              groups.add(newGroup); // Actualiza la lista con el nuevo grupo
+            });
           }
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
         backgroundColor: Colors.green,
       ),
     );
   }
 }
+
