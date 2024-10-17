@@ -22,7 +22,11 @@ class _ChatWindowState extends State<ChatWindow> {
   final ChatService _chatService = ChatService();
   final AuthService _authService = AuthService();
   String? currentUserId;
+  double _dateMarkerOpacity = 1.0;
   Timer? _pollingTimer;
+  Timer? _dateMarkerTimer;
+  String currentDateMarker = '';
+
   List<Map<String, dynamic>> messages = [];
 
   @override
@@ -30,6 +34,7 @@ class _ChatWindowState extends State<ChatWindow> {
     super.initState();
     _loadCurrentUserId();
     _startPolling();
+    _scrollController.addListener(_handleScroll);
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -91,6 +96,13 @@ class _ChatWindowState extends State<ChatWindow> {
     _pollingTimer = Timer.periodic(Duration(seconds: 2), (timer) {
       _loadMessages(); // Llamar a _loadMessages cada 2 segundos
     });
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return now.year == date.year &&
+        now.month == date.month &&
+        now.day == date.day;
   }
 
   void _scrollToBottom() {
@@ -204,11 +216,55 @@ class _ChatWindowState extends State<ChatWindow> {
     }
   }
 
+  // Método que maneja el desplazamiento
+  void _handleScroll() {
+    if (_scrollController.position.atEdge) return;
+
+    // Calcular el índice del mensaje visible
+    int firstVisibleIndex =
+        (_scrollController.offset / 60).floor(); // Aproximado
+
+    if (firstVisibleIndex >= 0 && firstVisibleIndex < messages.length) {
+      DateTime messageDate =
+          DateTime.parse(messages[firstVisibleIndex]['timestamp']);
+      String formattedDate = DateFormat('yMMMd').format(messageDate);
+
+      // Actualiza el encabezado según la fecha visible y reinicia el temporizador
+      setState(() {
+        currentDateMarker = _isToday(messageDate)
+            ? 'A partir de aquí los mensajes son de hoy'
+            : 'A partir de aquí los mensajes son del $formattedDate';
+        _dateMarkerOpacity = 1.0; // Mostrar inmediatamente el marcador de fecha
+      });
+
+      // Reinicia el temporizador para comenzar el desvanecimiento
+      _restartDateMarkerTimer();
+    }
+  }
+
+  // Función para ocultar el marcador de fecha con desvanecimiento después de un tiempo
+  void _restartDateMarkerTimer() {
+    // Cancelar el temporizador si ya existe uno
+    if (_dateMarkerTimer != null) {
+      _dateMarkerTimer!.cancel();
+    }
+
+    // Iniciar un nuevo temporizador de 3 segundos
+    _dateMarkerTimer = Timer(Duration(seconds: 3), () {
+      setState(() {
+        _dateMarkerOpacity =
+            0.0; // Cambiar la opacidad para iniciar el desvanecimiento
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_handleScroll);
     _messageController.dispose();
     _scrollController.dispose();
     _pollingTimer?.cancel();
+    _dateMarkerTimer?.cancel();
     super.dispose();
   }
 
@@ -218,9 +274,10 @@ class _ChatWindowState extends State<ChatWindow> {
       appBar: AppBar(
         title: Text(widget.receiverName),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
+          // Lista de mensajes
+          Positioned.fill(
             child: ListView.builder(
               controller: _scrollController,
               itemCount: messages.length,
@@ -236,7 +293,7 @@ class _ChatWindowState extends State<ChatWindow> {
 
                 return GestureDetector(
                   onTap: () {
-                    // Abre el menú contextual al hacer clic en el mensaje
+                    // Menú contextual
                     showMenu(
                       context: context,
                       position: RelativeRect.fromLTRB(100, 100, 0, 0),
@@ -292,40 +349,33 @@ class _ChatWindowState extends State<ChatWindow> {
                             ? CrossAxisAlignment.end
                             : CrossAxisAlignment.start,
                         children: [
-                          // El mensaje
                           Text(
                             message['message'],
                             style: TextStyle(color: Colors.black),
                           ),
-                          // Hora y estado de visto
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Hora del mensaje
                               Text(
                                 DateFormat('HH:mm').format(timestamp),
                                 style:
                                     TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               SizedBox(width: 4),
-                              // Lógica para los íconos de visto
                               if (message['isSender'])
                                 Row(
                                   children: [
                                     Icon(
                                       Icons.check,
                                       color: message['isSeen']
-                                          ? Colors.blue[
-                                              800] // Doble check azul si ha sido visto
-                                          : Colors
-                                              .grey, // Check gris si no ha sido visto
+                                          ? Colors.blue[800]
+                                          : Colors.grey,
                                       size: 16,
                                     ),
                                     if (message['isSeen'])
                                       Icon(
                                         Icons.check,
-                                        color: Colors.blue[
-                                            800], // Segundo check azul si ha sido visto
+                                        color: Colors.blue[800],
                                         size: 16,
                                       ),
                                   ],
@@ -343,7 +393,35 @@ class _ChatWindowState extends State<ChatWindow> {
               },
             ),
           ),
-          _buildMessageInput(),
+          // Encabezado de fecha flotante
+          Positioned(
+            top: 10,
+            left: 0,
+            right: 0,
+            child: AnimatedOpacity(
+              opacity: _dateMarkerOpacity, // Controlar opacidad
+              duration: Duration(milliseconds: 500),
+              child: _dateMarkerOpacity > 0.0
+                  ? Center(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Text(
+                          currentDateMarker,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  : SizedBox.shrink(),
+            ),
+          ),
         ],
       ),
     );
@@ -537,3 +615,4 @@ class _ChatWindowState extends State<ChatWindow> {
     );
   }
 }
+
