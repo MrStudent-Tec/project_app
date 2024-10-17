@@ -98,7 +98,11 @@ class AuthService {
       return 'Error de conexión al servidor';
     }
   }
-
+  // Método para cerrar sesión (logout)
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Borra todos los datos guardados
+  }
   Future<void> saveUserId(String uid) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('uid', uid); // Guardar usando 'uid'
@@ -175,3 +179,4 @@ class AuthService {
     }
   }
 }
+
