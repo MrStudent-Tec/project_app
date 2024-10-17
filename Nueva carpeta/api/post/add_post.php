@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $sql = "INSERT INTO posts (user_id, content, likes, post_date) VALUES ('$user_id', '$content', 0, NOW())";
         if ($conn->query($sql) === TRUE) {
 
-            $users_query = "SELECT identy FROM dateperson"; // Asumiendo que tienes una tabla de usuarios
+            $users_query = "SELECT uid FROM dateperson"; // Asumiendo que tienes una tabla de usuarios
             $users_result = mysqli_query($conn, $users_query);
-
+            
             // Añadir una notificación para cada usuario
             while ($row = mysqli_fetch_assoc($users_result)) {
-                $user_id_for_notification = $row['identy'];
+                $user_id_for_notification = $row['uid'];
                 $title = "Nuevo post añadido";
                 $message = "Un usuario ha publicado: $content";
                 $created_at = date('Y-m-d H:i:s');
