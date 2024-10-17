@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ubook/calendar.dart';
 import 'package:ubook/services/postservice.dart';
 import 'package:ubook/services/auth_service.dart';
-import 'package:ubook/notification_screen.dart'; // Importar la nueva pantalla de notificaciones
+import 'package:ubook/notification_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Para borrar la caché
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,31 +13,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  // Lista de publicaciones
   List<Map<String, dynamic>> posts = [];
   final PostService _postService = PostService();
-  String? userId; // Variable para almacenar el ID del usuario
+  String? userId;
 
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Cargar el ID del usuario
+    _loadUserId();
   }
 
   void _loadUserId() async {
     AuthService authService = AuthService();
-    userId = await authService.getUserId(); // Recuperar el ID del usuario
+    userId = await authService.getUserId();
     if (userId != null) {
-      _loadPosts(); // Cargar publicaciones solo si el ID está disponible
+      _loadPosts();
     } else {
-      // Manejar caso en que no se pueda recuperar el ID del usuario
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo recuperar el ID de usuario.')),
       );
     }
   }
 
-  // Cargar publicaciones desde la API
   void _loadPosts() async {
     try {
       List<Map<String, dynamic>> loadedPosts = await _postService.getPosts();
@@ -44,21 +42,17 @@ class HomeScreenState extends State<HomeScreen> {
         posts = loadedPosts;
       });
     } catch (e) {
-      // Manejar errores al cargar publicaciones
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar publicaciones: $e')),
       );
     }
   }
 
-  // Añadir una nueva publicación
   void _addPost(String content) async {
     if (userId != null) {
-      // Verificar si el ID del usuario está disponible
       try {
-        await _postService.addPost(
-            int.parse(userId!), content); // Convertir el ID a int
-        _loadPosts(); // Recargar publicaciones después de añadir
+        await _postService.addPost(int.parse(userId!), content);
+        _loadPosts();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al añadir publicación: $e')),
@@ -66,15 +60,13 @@ class HomeScreenState extends State<HomeScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ID de usuario no disponible')),
+        const SnackBar(content: Text('Error: ID de usuario no disponible')),
       );
     }
   }
 
-  // Mostrar el formulario de añadir publicación
   void _showAddPostDialog() {
     String newPostContent = '';
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -109,20 +101,26 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Manejar el "like" o "unlike" de una publicación
+  Future<void> _logout() async {
+    AuthService authService = AuthService();
+    await authService.logout(); // Lógica para cerrar sesión
+
+    // Limpiar caché de SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Borra toda la caché almacenada
+
+    // Navegar al login
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
   void _toggleLike(int index) async {
     try {
       bool isLiked = posts[index]['liked'] ?? false;
-
-      // Enviar la actualización al servidor
       final response = await _postService.toggleLike(
           int.parse(posts[index]['post_id'].toString()), isLiked);
-
-      // Si la respuesta es exitosa, actualizar la UI con el número de likes actualizado
       setState(() {
-        posts[index]['likes'] = response[
-            'likes']; // Asegúrate de que 'likes' viene de la respuesta decodificada
-        posts[index]['liked'] = !isLiked; // Cambiar el estado de "liked"
+        posts[index]['likes'] = response['likes'];
+        posts[index]['liked'] = !isLiked;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -135,13 +133,10 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Ubook',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF004D40), // Verde oscuro
+        title: const Text('Ubook', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF004D40),
+        automaticallyImplyLeading: false,
         actions: [
-          // Icono de notificaciones
           IconButton(
             icon: const Icon(Icons.notifications),
             color: Colors.white,
@@ -150,9 +145,8 @@ class HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NotificationScreen(
-                      userId: int.parse(userId!), // Pasar el userId como entero
-                    ),
+                    builder: (context) =>
+                        NotificationScreen(userId: int.parse(userId!)),
                   ),
                 );
               } else {
@@ -180,10 +174,15 @@ class HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            color: Colors.white,
+            onPressed: _logout, // Llamada al método de logout
+          ),
         ],
       ),
       body: ListView.builder(
-        itemCount: posts.length, // Número de publicaciones dinámico
+        itemCount: posts.length,
         itemBuilder: (context, index) {
           return Card(
             color: Colors.grey[800],
@@ -196,7 +195,7 @@ class HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       const CircleAvatar(
-                        backgroundColor: Colors.green, // Color del avatar
+                        backgroundColor: Colors.green,
                         child: Icon(Icons.person, color: Colors.white),
                       ),
                       const SizedBox(width: 10),
