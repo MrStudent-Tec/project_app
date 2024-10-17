@@ -132,6 +132,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(28, 0, 77, 64),
       appBar: AppBar(
         title: const Text('Ubook', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF004D40),
@@ -185,7 +186,7 @@ class HomeScreenState extends State<HomeScreen> {
         itemCount: posts.length,
         itemBuilder: (context, index) {
           return Card(
-            color: Colors.grey[800],
+            color: Color.fromARGB(255, 255, 255, 255),
             margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -195,19 +196,23 @@ class HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       const CircleAvatar(
-                        backgroundColor: Colors.green,
-                        child: Icon(Icons.person, color: Colors.white),
+                        backgroundColor: Color.fromARGB(255, 0, 89, 79),
+                        child: Icon(Icons.person,
+                            color: Color.fromARGB(255, 255, 255, 255)),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           posts[index]['author'] ?? 'Autor desconocido',
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 0, 0)),
                         ),
                       ),
                       Text(
                         posts[index]['date'] ?? '',
-                        style: const TextStyle(color: Colors.grey),
+                        style: const TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0)),
                         textAlign: TextAlign.right,
                       ),
                     ],
@@ -215,7 +220,7 @@ class HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 10),
                   Text(
                     posts[index]['content'] ?? '',
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -227,7 +232,7 @@ class HomeScreenState extends State<HomeScreen> {
                               : Icons.favorite_border,
                           color: (posts[index]['liked'] ?? false)
                               ? Colors.red
-                              : Colors.green,
+                              : Color.fromARGB(255, 0, 89, 79),
                         ),
                         onPressed: () {
                           _toggleLike(index);
@@ -236,15 +241,18 @@ class HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 5),
                       Text(
                         '${posts[index]['likes']} likes',
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0)),
                       ),
                       const Spacer(),
                       TextButton.icon(
                         onPressed: () {},
-                        icon: const Icon(Icons.share, color: Colors.green),
+                        icon: const Icon(Icons.share,
+                            color: Color.fromARGB(255, 0, 89, 79)),
                         label: const Text(
                           'COMPARTIR',
-                          style: TextStyle(color: Colors.green),
+                          style:
+                              TextStyle(color: Color.fromARGB(255, 0, 89, 79)),
                         ),
                       ),
                     ],
@@ -257,7 +265,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPostDialog,
-        backgroundColor: const Color(0xFF004D40),
+        backgroundColor: Color.fromARGB(255, 0, 77, 64),
         child: const Icon(Icons.add),
       ),
     );

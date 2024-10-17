@@ -26,7 +26,7 @@ class UsersScreen extends StatelessWidget {
         child: Scaffold(
           appBar: AppBar(
             title: const Text(
-              'Usuario',
+              'Mensajería',
               style: TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF004D40),
@@ -70,4 +70,3 @@ class UsersScreen extends StatelessWidget {
     );
   }
 }
-

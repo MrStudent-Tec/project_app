@@ -25,8 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/logo.png',
+              Image.network(
+                'assets/icon/logo.png',
                 height: 150,
               ),
               const SizedBox(height: 30),
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Botón de inicio de sesión
               SizedBox(
-                width: double.infinity,
+                width: 120,
                 child: ElevatedButton(
                   onPressed: () async {
                     // Validar que los campos no estén vacíos
@@ -95,7 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  child: const Text('Iniciar sesión'),
+                  child: const Text(
+                    'Iniciar sesión',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
 

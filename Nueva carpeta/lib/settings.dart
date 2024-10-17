@@ -93,11 +93,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(Icons.notifications),
-                    title: Text('Notificaciones'),
-                    trailing: Icon(Icons.arrow_forward_ios),
-                  ),
-                  ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacidad'),
                     trailing: Icon(Icons.arrow_forward_ios),

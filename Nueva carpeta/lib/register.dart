@@ -111,7 +111,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Registro'),
+        title: const Text(
+          'Registro',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF004D40), // Verde oscuro
       ),
       body: Padding(
@@ -121,6 +124,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  'Crea una cuenta',
+                  style: TextStyle(
+                    fontSize: 45,
+                    fontWeight:
+                        FontWeight.bold, // Hace que la letra sea más gruesa
+                    color: Color(
+                        0xFF00594E), // Aplica el color que mencionas (con formato hexadecimal completo)
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Text(
+                  'Es rápido y fácil...',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                Text(
+                  'A continuación, ingresa los datos correspondientes:',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 40),
                 // Campo de identificación
                 TextField(
                   controller: _identyController,
@@ -132,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Número de identificación',
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Campo de nombre de usuario
                 TextField(
@@ -144,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Campo de correo
                 TextField(
@@ -157,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'ejemplo@unitropico.edu.co',
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Campo de contraseña
                 TextField(
@@ -170,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Selector de fecha de nacimiento
                 ListTile(
@@ -182,6 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   trailing: const Icon(Icons.calendar_today),
                   onTap: _pickDate,
                 ),
+                const SizedBox(height: 10),
 
                 // Selector de programa
                 DropdownButtonFormField<String>(
@@ -204,11 +237,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 110),
 
                 // Botón de registro
                 SizedBox(
-                  width: double.infinity,
+                  width: 120,
                   child: ElevatedButton(
                     onPressed: _registerUser,
                     style: ElevatedButton.styleFrom(
@@ -218,7 +251,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    child: const Text('Registrarse'),
+                    child: const Text(
+                      'Registrarse',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ],
