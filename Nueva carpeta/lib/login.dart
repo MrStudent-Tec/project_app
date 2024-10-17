@@ -12,8 +12,10 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controladores para los campos de texto
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   final AuthService _authService = AuthService();
+
+  // Variable para controlar la visibilidad de la contraseña
+  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,36 +31,55 @@ class _LoginScreenState extends State<LoginScreen> {
                 'assets/icon/logo.png',
                 height: 150,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 80),
 
-              // Campo de correo
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Correo electrónico',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Campo de contraseña
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Botón de inicio de sesión
+              // Campo de correo con ancho fijo de 200px
               SizedBox(
-                width: 120,
+                width: 500,
+                child: TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Correo electrónico',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Campo de contraseña con ancho fijo de 200px y icono para mostrar/ocultar
+              SizedBox(
+                width: 500,
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText:
+                      !_isPasswordVisible, // Contraseña oculta o visible
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 60),
+
+              // Botón de inicio de sesión con icono de llave
+              SizedBox(
+                width: 140, // Tamaño ajustado para el botón
                 child: ElevatedButton(
                   onPressed: () async {
                     // Validar que los campos no estén vacíos
@@ -95,9 +116,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  child: const Text(
-                    'Iniciar sesión',
-                    style: TextStyle(color: Colors.white),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.vpn_key,
+                          color: Colors.white), // Icono de llave
+                      SizedBox(width: 8), // Espacio entre el icono y el texto
+                      Text(
+                        'Iniciar sesión',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
               ),

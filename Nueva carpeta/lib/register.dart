@@ -9,7 +9,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // Controladores para los campos de texto
   final TextEditingController _identyController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
@@ -18,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedProgram;
 
   final AuthService _authService = AuthService();
+  bool _isPasswordVisible = false; // Estado para controlar visibilidad
 
   final List<String> programs = [
     'Ingeniería de Sistemas',
@@ -29,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Contaduría Pública'
   ];
 
-  // Función para validar que el correo sea de un dominio permitido
   bool _isValidEmail(String email) {
     return email.endsWith('@gmail.com') || email.endsWith('@unitropico.edu.co');
   }
@@ -49,57 +48,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _registerUser() async {
-    // Validar que los campos requeridos no sean nulos
     if (_identyController.text.isNotEmpty &&
         _usernameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _selectedDate != null &&
         _selectedProgram != null) {
-      // Validar el correo electrónico
       if (!_isValidEmail(_emailController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content:
                   Text('El correo debe ser @gmail.com o @unitropico.edu.co')),
         );
-        return; // Detener el registro si el correo no es válido
+        return;
       }
 
-      // Verificar si el correo ya está registrado
       bool emailExists =
           await _authService.checkEmailExists(_emailController.text);
 
       if (emailExists) {
-        // Mostrar mensaje si el correo ya está registrado
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('El correo ya está registrado. Usa otro.')),
         );
-        return; // Detener el registro
+        return;
       }
 
-      // Convertir la fecha a una cadena (por ejemplo, 'YYYY-MM-DD')
       String formattedDate =
           "${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}";
 
-      // Llamar a la función de registro con valores no nulos
       await _authService.registerUser(
         _identyController.text,
         _usernameController.text,
         _emailController.text,
         _passwordController.text,
-        formattedDate, // Aquí pasas la fecha como cadena
-        _selectedProgram!, // Asegurar que no sea nulo con '!'
+        formattedDate,
+        _selectedProgram!,
       );
 
-      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registrado con éxito')),
       );
       Navigator.pushNamed(context, '/login');
     } else {
-      // Mostrar un mensaje de error si faltan campos
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos')),
       );
@@ -128,15 +119,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   'Crea una cuenta',
                   style: TextStyle(
                     fontSize: 45,
-                    fontWeight:
-                        FontWeight.bold, // Hace que la letra sea más gruesa
-                    color: Color(
-                        0xFF00594E), // Aplica el color que mencionas (con formato hexadecimal completo)
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF00594E), // Aplica el color verde
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
                 Text(
                   'Es rápido y fácil...',
                   style: TextStyle(
@@ -144,7 +131,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 Text(
                   'A continuación, ingresa los datos correspondientes:',
                   style: TextStyle(
@@ -154,106 +140,131 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 40),
                 // Campo de identificación
-                TextField(
-                  controller: _identyController,
-                  decoration: InputDecoration(
-                    labelText: 'Identificación',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: TextField(
+                    controller: _identyController,
+                    decoration: InputDecoration(
+                      labelText: 'Identificación',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      hintText: 'Número de identificación',
                     ),
-                    hintText: 'Número de identificación',
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 // Campo de nombre de usuario
-                TextField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nombre de usuario',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre de usuario',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 // Campo de correo
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Correo',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    hintText: 'ejemplo@unitropico.edu.co',
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Campo de contraseña
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Correo',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      hintText: 'ejemplo@unitropico.edu.co',
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-
+                // Campo de contraseña con ícono de visibilidad
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 // Selector de fecha de nacimiento
-                ListTile(
-                  title: Text(
-                    _selectedDate == null
-                        ? 'Fecha de Nacimiento'
-                        : 'Fecha de Nacimiento: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: ListTile(
+                    title: Text(
+                      _selectedDate == null
+                          ? 'Fecha de Nacimiento'
+                          : 'Fecha de Nacimiento: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                    ),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: _pickDate,
                   ),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: _pickDate,
                 ),
                 const SizedBox(height: 10),
-
                 // Selector de programa
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Programa',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                SizedBox(
+                  width: 500, // Ancho específico
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Programa',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
+                    value: _selectedProgram,
+                    items: programs.map((program) {
+                      return DropdownMenuItem(
+                        value: program,
+                        child: Text(program),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedProgram = value;
+                      });
+                    },
                   ),
-                  value: _selectedProgram,
-                  items: programs.map((program) {
-                    return DropdownMenuItem(
-                      value: program,
-                      child: Text(program),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedProgram = value;
-                    });
-                  },
                 ),
                 const SizedBox(height: 110),
-
                 // Botón de registro
                 SizedBox(
                   width: 120,
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: _registerUser,
+                    icon: const Icon(Icons.person, color: Colors.white),
+                    label: const Text(
+                      'Registrarse',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF004D40), // Verde oscuro
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                    ),
-                    child: const Text(
-                      'Registrarse',
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
