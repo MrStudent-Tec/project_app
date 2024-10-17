@@ -37,6 +37,7 @@ class _ChatWindowState extends State<ChatWindow> {
     _scrollController.addListener(_handleScroll);
   }
 
+  @override
   Future<void> _loadCurrentUserId() async {
     currentUserId = await _authService.getUserId();
     if (currentUserId != null) {
@@ -96,6 +97,14 @@ class _ChatWindowState extends State<ChatWindow> {
     _pollingTimer = Timer.periodic(Duration(seconds: 2), (timer) {
       _loadMessages(); // Llamar a _loadMessages cada 2 segundos
     });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel(); // Cancela el temporizador de polling
+    _dateMarkerTimer?.cancel(); // Cancela el temporizador de marcador de fecha
+    _scrollController.dispose(); // Libera el controlador de desplazamiento
+    super.dispose();
   }
 
   bool _isToday(DateTime date) {
@@ -614,4 +623,3 @@ class _ChatWindowState extends State<ChatWindow> {
     );
   }
 }
-
