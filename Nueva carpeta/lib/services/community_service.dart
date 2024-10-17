@@ -62,6 +62,7 @@ class CommunityService {
         return data.map((group) {
           return {
             'community_group_id': group['community_group_id'],
+            'group_id': group['group_id'], // Añadir el verdadero group_id aquí
             'group_name': group['group_name'],
             'group_image': group['group_image'], // Puede ser null
             'lastMessage': group['lastmessage'],
@@ -193,7 +194,7 @@ class CommunityService {
       final response = await http.post(
         Uri.parse(addMemberUrl),
         body: {
-          'community_id': communityId,
+          'community_id': communityId.toString(),
           'user_id': userId,
         },
       );
@@ -212,20 +213,29 @@ class CommunityService {
   Future<List<Map<String, dynamic>>> getCommunityMembers(
       String communityId) async {
     try {
+      // Construir la URI para la solicitud HTTP
       final response = await http.get(
-          Uri.parse('$baseUrl/communitymembers.php?community_id=$communityId'));
+        Uri.parse('$baseUrl/communitymembers.php?community_id=$communityId'),
+      );
 
+      // Imprimir la respuesta del servidor para depuración
       logger
           .i("Respuesta del servidor (getCommunityMembers): ${response.body}");
 
+      // Verificar si la solicitud fue exitosa (código de respuesta 200)
       if (response.statusCode == 200) {
+        // Decodificar la respuesta JSON
         List<dynamic> jsonResponse = json.decode(response.body);
+
+        // Retornar la lista de mapas convertida desde la respuesta JSON
         return List<Map<String, dynamic>>.from(jsonResponse);
       } else {
+        // Registrar un error si el código de respuesta no es 200
         logger.e("Error al cargar miembros: ${response.statusCode}");
         return [];
       }
     } catch (e) {
+      // Manejo de errores, como problemas de conexión
       logger.e("Error al obtener miembros de la comunidad: $e");
       return [];
     }
@@ -259,3 +269,4 @@ class CommunityService {
     }
   }
 }
+
