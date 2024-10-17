@@ -259,169 +259,168 @@ class _ChatWindowState extends State<ChatWindow> {
   }
 
   @override
-  void dispose() {
-    _scrollController.removeListener(_handleScroll);
-    _messageController.dispose();
-    _scrollController.dispose();
-    _pollingTimer?.cancel();
-    _dateMarkerTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.receiverName),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          // Lista de mensajes
-          Positioned.fill(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                var message = messages[index];
-                DateTime timestamp;
+          // Mensajes y encabezado flotante
+          Expanded(
+            child: Stack(
+              children: [
+                // Lista de mensajes
+                Positioned.fill(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      var message = messages[index];
+                      DateTime timestamp;
 
-                try {
-                  timestamp = DateTime.parse(message['timestamp']);
-                } catch (e) {
-                  timestamp = DateTime.now();
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    // Menú contextual
-                    showMenu(
-                      context: context,
-                      position: RelativeRect.fromLTRB(100, 100, 0, 0),
-                      items: [
-                        PopupMenuItem(
-                          child: Text("Editar"),
-                          value: "edit",
-                        ),
-                        PopupMenuItem(
-                          child: Text("Reenviar"),
-                          value: "forward",
-                        ),
-                        PopupMenuItem(
-                          child: Text("Eliminar"),
-                          value: "delete",
-                        ),
-                      ],
-                    ).then((value) {
-                      if (value == "delete") {
-                        _showDeleteConfirmation(message);
-                      } else if (value == "edit") {
-                        _editMessage(message);
-                      } else if (value == "forward") {
-                        _forwardMessage(message);
+                      try {
+                        timestamp = DateTime.parse(message['timestamp']);
+                      } catch (e) {
+                        timestamp = DateTime.now();
                       }
-                    });
-                  },
-                  child: Align(
-                    alignment: message['isSender']
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      margin:
-                          EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                      padding: EdgeInsets.all(10.0),
-                      decoration: BoxDecoration(
-                        color: message['isSender']
-                            ? Colors.blue[200]
-                            : Colors.grey[300],
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12.0),
-                          topRight: Radius.circular(12.0),
-                          bottomLeft: message['isSender']
-                              ? Radius.circular(12.0)
-                              : Radius.circular(0),
-                          bottomRight: message['isSender']
-                              ? Radius.circular(0)
-                              : Radius.circular(12.0),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: message['isSender']
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            message['message'],
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                DateFormat('HH:mm').format(timestamp),
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.grey),
+
+                      return GestureDetector(
+                        onTap: () {
+                          // Menú contextual
+                          showMenu(
+                            context: context,
+                            position: RelativeRect.fromLTRB(100, 100, 0, 0),
+                            items: [
+                              PopupMenuItem(
+                                child: Text("Editar"),
+                                value: "edit",
                               ),
-                              SizedBox(width: 4),
-                              if (message['isSender'])
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check,
-                                      color: message['isSeen']
-                                          ? Colors.blue[800]
-                                          : Colors.grey,
-                                      size: 16,
-                                    ),
-                                    if (message['isSeen'])
-                                      Icon(
-                                        Icons.check,
-                                        color: Colors.blue[800],
-                                        size: 16,
-                                      ),
-                                  ],
-                                )
-                              else if (message['isSeen'])
-                                Icon(Icons.check,
-                                    color: Colors.blue[800], size: 16),
+                              PopupMenuItem(
+                                child: Text("Reenviar"),
+                                value: "forward",
+                              ),
+                              PopupMenuItem(
+                                child: Text("Eliminar"),
+                                value: "delete",
+                              ),
                             ],
+                          ).then((value) {
+                            if (value == "delete") {
+                              _showDeleteConfirmation(message);
+                            } else if (value == "edit") {
+                              _editMessage(message);
+                            } else if (value == "forward") {
+                              _forwardMessage(message);
+                            }
+                          });
+                        },
+                        child: Align(
+                          alignment: message['isSender']
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            margin: EdgeInsets.symmetric(
+                                vertical: 4.0, horizontal: 8.0),
+                            padding: EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(
+                              color: message['isSender']
+                                  ? Colors.blue[200]
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(12.0),
+                                topRight: Radius.circular(12.0),
+                                bottomLeft: message['isSender']
+                                    ? Radius.circular(12.0)
+                                    : Radius.circular(0),
+                                bottomRight: message['isSender']
+                                    ? Radius.circular(0)
+                                    : Radius.circular(12.0),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: message['isSender']
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  message['message'],
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      DateFormat('HH:mm').format(timestamp),
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    SizedBox(width: 4),
+                                    if (message['isSender'])
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check,
+                                            color: message['isSeen']
+                                                ? Colors.blue[800]
+                                                : Colors.grey,
+                                            size: 16,
+                                          ),
+                                          if (message['isSeen'])
+                                            Icon(
+                                              Icons.check,
+                                              color: Colors.blue[800],
+                                              size: 16,
+                                            ),
+                                        ],
+                                      )
+                                    else if (message['isSeen'])
+                                      Icon(Icons.check,
+                                          color: Colors.blue[800], size: 16),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                // Encabezado de fecha flotante
+                Positioned(
+                  top: 10,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedOpacity(
+                    opacity: _dateMarkerOpacity, // Controlar opacidad
+                    duration: Duration(milliseconds: 500),
+                    child: _dateMarkerOpacity > 0.0
+                        ? Center(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              child: Text(
+                                currentDateMarker,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                  ),
+                ),
+              ],
             ),
           ),
-          // Encabezado de fecha flotante
-          Positioned(
-            top: 10,
-            left: 0,
-            right: 0,
-            child: AnimatedOpacity(
-              opacity: _dateMarkerOpacity, // Controlar opacidad
-              duration: Duration(milliseconds: 500),
-              child: _dateMarkerOpacity > 0.0
-                  ? Center(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: Text(
-                          currentDateMarker,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    )
-                  : SizedBox.shrink(),
-            ),
-          ),
+          // Campo de entrada de mensaje
+          _buildMessageInput(),
         ],
       ),
     );
@@ -615,3 +614,4 @@ class _ChatWindowState extends State<ChatWindow> {
     );
   }
 }
+
