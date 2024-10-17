@@ -29,6 +29,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Contaduría Pública'
   ];
 
+  // Función para validar que el correo sea de un dominio permitido
+  bool _isValidEmail(String email) {
+    return email.endsWith('@gmail.com') || email.endsWith('@unitropico.edu.co');
+  }
+
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -51,6 +56,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _passwordController.text.isNotEmpty &&
         _selectedDate != null &&
         _selectedProgram != null) {
+      // Validar el correo electrónico
+      if (!_isValidEmail(_emailController.text)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('El correo debe ser @gmail.com o @unitropico.edu.co')),
+        );
+        return; // Detener el registro si el correo no es válido
+      }
+
       // Verificar si el correo ya está registrado
       bool emailExists =
           await _authService.checkEmailExists(_emailController.text);
