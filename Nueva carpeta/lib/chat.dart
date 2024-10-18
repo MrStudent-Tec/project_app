@@ -172,6 +172,11 @@ class _ChatScreenState extends State<ChatScreen> {
               itemBuilder: (context, index) {
                 var chat = chats[index];
                 return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green, // Fondo verde
+                    child: Icon(Icons.person,
+                        color: Colors.white), // Ícono de persona en blanco
+                  ),
                   title: Text(chat['name'] ?? 'Usuario desconocido'),
                   subtitle: Row(
                     children: [
@@ -204,3 +209,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+
