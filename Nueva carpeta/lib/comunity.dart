@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ubook/services/community_service.dart';
 import 'package:ubook/services/auth_service.dart';
@@ -16,14 +17,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
   final AuthService _authService = AuthService();
   List communities = [];
   String? currentUserId;
+  Timer? _pollingTimer;
+  final int _pollingIntervalSeconds = 10; // Intervalo de 10 segundos
 
   @override
   void initState() {
     super.initState();
-    fetchUserIdAndCommunities(); // Llamada para cargar el userId y las comunidades
+    fetchUserIdAndCommunities(); // Cargar inicialmente el userId y las comunidades
+    startPolling(); // Iniciar el polling para cargar comunidades periódicamente
   }
 
-  // Obtener el userId del usuario logueado y luego cargar las comunidades
+  // Obtener el userId del usuario logueado y cargar las comunidades
   Future<void> fetchUserIdAndCommunities() async {
     try {
       currentUserId =
@@ -48,6 +52,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
     } catch (error) {
       print('Error al cargar comunidades: $error');
     }
+  }
+
+  // Función que inicia el polling
+  void startPolling() {
+    _pollingTimer = Timer.periodic(
+      Duration(seconds: _pollingIntervalSeconds), // Cada 10 segundos
+      (timer) {
+        if (currentUserId != null) {
+          fetchCommunities(currentUserId!); // Recargar las comunidades
+        }
+      },
+    );
+  }
+
+  // Cancelar el polling cuando el widget sea destruido
+  @override
+  void dispose() {
+    _pollingTimer?.cancel(); // Cancelar el Timer
+    super.dispose();
   }
 
   @override
@@ -83,11 +106,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     community['community_name'],
                     style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                   ),
-                  // Eliminar el ID de la comunidad de aquí
-                  // subtitle: Text(
-                  //   'ID de la comunidad: ${community['community_id']}',
-                  //   style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-                  // ),
                   onTap: () {
                     // Navegar a la ventana de la comunidad seleccionada
                     Navigator.push(
