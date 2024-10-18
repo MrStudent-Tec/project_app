@@ -1,5 +1,0 @@
-Array
-(
-    [message_id] => 9
-    [new_message] => parece que falla el globo
-)
