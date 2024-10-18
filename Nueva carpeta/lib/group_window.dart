@@ -413,3 +413,8 @@ class MessageWidget extends StatelessWidget {
     );
   }
 }
+
+      ),
+    );
+  }
+}
