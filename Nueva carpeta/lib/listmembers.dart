@@ -46,9 +46,12 @@ class _MembersListScreenState extends State<MembersListScreen> {
 // Eliminar miembro
   Future<void> removeMember(String memberId) async {
     try {
-      // Asegurarse de que memberId sea un String
+      // Asegurarse de que groupId y memberId sean Strings
       await _groupService.removeGroupMember(
-          widget.groupId, memberId.toString());
+        widget.groupId.toString(), // Asegurarse de que sea un String
+        memberId.toString(), // Asegurarse de que sea un String
+      );
+      print("groupId: ${widget.groupId}, memberId: $memberId");
       loadMembers(); // Recargar la lista de miembros
     } catch (e) {
       showError('Error al eliminar miembro: $e');
@@ -94,7 +97,8 @@ class _MembersListScreenState extends State<MembersListScreen> {
                 ? IconButton(
                     icon: Icon(Icons.delete),
                     onPressed: () {
-                      removeMember(membersCopy[index]['uid']);
+                      removeMember(membersCopy[index]['uid']
+                          .toString()); // Asegurarse de que sea un String
                     },
                   )
                 : null,

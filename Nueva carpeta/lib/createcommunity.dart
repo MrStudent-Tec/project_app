@@ -54,17 +54,11 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
         Navigator.pop(context); // Regresar a la pantalla anterior
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear la comunidad.')),
+          SnackBar(content: Text('Hubo un error al crear la comunidad.')),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: No se pudo obtener el ID del usuario.')),
-      );
     }
   }
-
-  // Puedes añadir aquí la lógica para seleccionar una imagen
 
   @override
   Widget build(BuildContext context) {
