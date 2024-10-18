@@ -1,16 +1,16 @@
-<?php
+<?php 
 // Habilitar CORS
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-include '../db.php';
+include '../db.php'; // Asegúrate de que este archivo contiene la conexión a la base de datos
 
 $community_id = $_GET['community_id'];
 
-$query = "SELECT users.user_id, users.user_name, users.user_image 
+$query = "SELECT dateperson.uid AS user_id, dateperson.name AS user_name, dateperson.profile AS user_image 
           FROM community_members 
-          JOIN users ON community_members.user_id = users.user_id 
+          JOIN dateperson ON community_members.user_id = dateperson.uid 
           WHERE community_members.community_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $community_id);

@@ -9,7 +9,7 @@ include '../db.php';
 // Obtener el community_id desde los parámetros GET
 $community_id = $_GET['community_id'];
 
-$query = "SELECT community_groups.community_group_id, groups.group_name, groups.group_image, groups.lastmessage, groups.created_by 
+$query = "SELECT community_groups.community_group_id, groups.group_id, groups.group_name, groups.group_image, groups.lastmessage, groups.created_by 
           FROM community_groups 
           JOIN groups ON community_groups.group_id = groups.group_id 
           WHERE community_groups.community_id = ?";
@@ -23,6 +23,7 @@ $groups = array();
 while ($row = $result->fetch_assoc()) {
     $groups[] = array(
         'community_group_id' => $row['community_group_id'],
+        'group_id' => $row['group_id'], // Agregar el ID del grupo
         'group_name' => $row['group_name'],
         'group_image' => $row['group_image'], // Este campo es opcional, puede ser NULL
         'lastmessage' => $row['lastmessage'],
