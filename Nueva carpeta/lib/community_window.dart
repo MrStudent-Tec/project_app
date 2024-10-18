@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ubook/services/community_service.dart'; // Servicio de comunidad
 import 'package:ubook/memberslist.dart'; // Importa el archivo para la lista de miembros
 import 'package:ubook/group_window.dart'; // Importa la pantalla de detalles del grupo
+import 'package:ubook/services/auth_service.dart';
 
 class CommunityWindow extends StatefulWidget {
   final int communityId;
@@ -18,6 +19,7 @@ class CommunityWindow extends StatefulWidget {
 }
 
 class _CommunityWindowState extends State<CommunityWindow> {
+  final AuthService _authService = AuthService();
   List groups = [];
   int? selectedGroupId;
   bool isLoading = true; // Indicador de carga
@@ -78,6 +80,27 @@ class _CommunityWindowState extends State<CommunityWindow> {
     );
   }
 
+  Future<void> _leaveCommunity() async {
+    final userId = await _authService
+        .getUserId(); // Suponiendo que ya tienes la función para obtener el ID del usuario
+
+    final success = await CommunityService().removeCommunityMember(
+      widget.communityId.toString(),
+      userId.toString(),
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Has salido de la comunidad')),
+      );
+      Navigator.pop(context); // Vuelve a la pantalla anterior
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al salir de la comunidad')),
+      );
+    }
+  }
+
   // Navegar a la lista de miembros de la comunidad
   void _navigateToMembersList() {
     Navigator.push(
@@ -106,6 +129,12 @@ class _CommunityWindowState extends State<CommunityWindow> {
             icon: Icon(Icons.people),
             onPressed: _navigateToMembersList, // Navega a la lista de miembros
             tooltip: 'Lista de Miembros',
+          ),
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed:
+                _leaveCommunity, // Llama a la función para salir de la comunidad
+            tooltip: 'Salir de la comunidad',
           ),
         ],
       ),
@@ -229,3 +258,4 @@ class _CommunityWindowState extends State<CommunityWindow> {
     }
   }
 }
+
