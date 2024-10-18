@@ -1,40 +1,40 @@
 <?php
+// Habilitar CORS
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Methods: POST, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 include '../db.php';
 
-$message_id = $_POST['message_id'] ?? null;
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Decodificar datos JSON
+    $data = json_decode(file_get_contents('php://input'), true);
+    $messageId = $data['message_id'];
 
-if ($message_id) {
-    // Obtener el ID del grupo y el remitente de este mensaje antes de eliminarlo
-    $query_message = "SELECT group_id, sender_id FROM groupmessages WHERE idgroupmessages = ?";
-    $stmt_message = $conn->prepare($query_message);
-    $stmt_message->bind_param("i", $message_id);
-    $stmt_message->execute();
-    $result_message = $stmt_message->get_result();
-    $message_data = $result_message->fetch_assoc();
+    // Imprimir el valor de message_id en el log del servidor
+    error_log("El valor de message_id es: " . $messageId);
 
-    if ($message_data) {
-        // Eliminar el mensaje del grupo
-        $query_delete = "DELETE FROM groupmessages WHERE idgroupmessages = ?";
-        $stmt_delete = $conn->prepare($query_delete);
-        $stmt_delete->bind_param("i", $message_id);
-
-        if ($stmt_delete->execute()) {
-            echo json_encode(['status' => 'success', 'message' => 'Mensaje eliminado correctamente']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Error al eliminar el mensaje']);
-        }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Mensaje no encontrado']);
+    // Validar que se haya proporcionado un ID de mensaje
+    if (empty($messageId)) {
+        echo json_encode(['status' => 'error', 'message' => 'ID del mensaje no proporcionado']);
+        exit;
     }
 
-    $stmt_message->close();
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Datos incompletos']);
+    // Eliminar el mensaje de la base de datos
+    $query = "DELETE FROM groupmessages WHERE idgroupmessages = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $messageId);
+
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Mensaje eliminado correctamente']);
+    } else {
+        error_log("SQL Error: " . $stmt->error); // Log el error SQL
+        echo json_encode(['status' => 'error', 'message' => 'Error al eliminar el mensaje']);
+    }
+
+    $stmt->close();
+    $conn->close();
 }
 
-$conn->close();
+
 ?>
