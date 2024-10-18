@@ -123,18 +123,17 @@ class GroupService {
     final response = await http
         .get(Uri.parse('$baseUrl/groupmessages.php?group_id=$groupId'));
 
-    logger.i("Respuesta del servidor (getGroupMessages): ${response.body}");
-
     if (response.statusCode == 200) {
       List<dynamic> jsonResponse = json.decode(response.body);
       return List<Map<String, dynamic>>.from(jsonResponse);
     } else {
       logger.e("Error al cargar mensajes: ${response.statusCode}");
-      throw Exception('Error al cargar mensajes');
+      // No lanzar excepción, solo registrar el error
+      return [];
     }
   }
 
-  // Obtener los miembros del grupo
+// Obtener los miembros del grupo
   Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
     final response = await http
         .get(Uri.parse('$baseUrl/groupmembers.php?group_id=$groupId'));
@@ -146,7 +145,8 @@ class GroupService {
       return List<Map<String, dynamic>>.from(jsonResponse);
     } else {
       logger.e("Error al cargar miembros: ${response.statusCode}");
-      throw Exception('Error al cargar miembros');
+      // No lanzar excepción, solo registrar el error
+      return [];
     }
   }
 
@@ -174,18 +174,57 @@ class GroupService {
     }
   }
 
-  // Eliminar un miembro del grupo
-  Future<void> removeGroupMember(String groupId, String memberId) async {
-    // Asegurarte de que groupId y memberId sean Strings
+  Future<void> deleteGroupMessage(String messageId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/remove_group_member.php'),
+      Uri.parse('$baseUrl/delete_message_group.php'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: json.encode(<String, String>{
-        'group_id': groupId.toString(), // Asegurarte que sea un String
-        'member_id': memberId.toString(), // Asegurarte que sea un String
+        'message_id': messageId,
       }),
+    );
+
+    if (response.statusCode == 200) {
+      logger.i("Mensaje eliminado exitosamente");
+    } else {
+      logger.e("Error al eliminar el mensaje: ${response.statusCode}");
+      throw Exception('Error al eliminar el mensaje');
+    }
+  }
+
+  Future<void> editGroupMessage(String messageId, String newMessage) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/edit_message.php'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: json.encode(<String, String>{
+        'message_id': messageId,
+        'message': newMessage,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      logger.i("Mensaje actualizado exitosamente");
+    } else {
+      logger.e("Error al actualizar el mensaje: ${response.statusCode}");
+      throw Exception('Error al actualizar el mensaje');
+    }
+  }
+
+  Future<void> removeGroupMember(String groupId, String memberId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/remove_group_member.php'),
+      headers: <String, String>{
+        'Content-Type':
+            'application/x-www-form-urlencoded', // Cambiado a form-urlencoded
+      },
+      body: {
+        'group_id':
+            groupId, // Asegúrate de que los valores se envíen como cadenas
+        'member_id': memberId,
+      },
     );
 
     // Imprimir la respuesta completa del servidor
@@ -193,10 +232,8 @@ class GroupService {
 
     // Manejar la respuesta si es necesario
     if (response.statusCode == 200) {
-      // La solicitud fue exitosa
       print('Miembro eliminado con éxito');
     } else {
-      // Manejar errores de la solicitud
       print('Error al eliminar miembro: ${response.statusCode}');
     }
   }

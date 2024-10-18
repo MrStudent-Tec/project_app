@@ -136,7 +136,7 @@ class CommunityService {
     }
   }
 
-  // Crear una nueva comunidad
+// Crear una nueva comunidad
   Future<bool> createCommunity(
       String communityName, String communityImage, String createdBy) async {
     final String createCommunityUrl = "$baseUrl/create_community.php";
@@ -154,7 +154,9 @@ class CommunityService {
       logger.i("Respuesta del servidor (createCommunity): ${response.body}");
 
       final responseData = json.decode(response.body);
-      return responseData['status'] == 'success';
+
+      // Cambia de responseData['status'] == 'success' a responseData['success'] == true
+      return responseData['success'] == true;
     } catch (e) {
       logger.e("Error al crear comunidad: $e");
       return false;
@@ -242,31 +244,23 @@ class CommunityService {
   }
 
   // Eliminar un miembro de la comunidad
-  Future<void> removeCommunityMember(
-      String communityId, String memberId) async {
+  Future<bool> removeCommunityMember(String communityId, String userId) async {
+    final String removeMemberUrl = "$baseUrl/remove_community_member.php";
+
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/remove_community_member.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(<String, String>{
+        Uri.parse(removeMemberUrl),
+        body: {
           'community_id': communityId,
-          'member_id': memberId,
-        }),
+          'user_id': userId,
+        },
       );
 
-      logger.i(
-          'Respuesta del servidor (removeCommunityMember): ${response.body}');
-
-      if (response.statusCode == 200) {
-        logger.i('Miembro eliminado con éxito');
-      } else {
-        logger.e('Error al eliminar miembro: ${response.statusCode}');
-      }
+      final responseData = json.decode(response.body);
+      return responseData['status'] == 'success';
     } catch (e) {
-      logger.e('Error al eliminar miembro de la comunidad: $e');
+      logger.e("Error al salir de la comunidad: $e");
+      return false;
     }
   }
 }
-
